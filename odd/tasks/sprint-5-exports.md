@@ -39,7 +39,7 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 ## Tasks
 
 - [x] T1 `packages/shared`: export view param schema, report filename helper/contract.
-- [ ] T2 `apps/api/src/export/xlsx`: pure workbook builder (4 sheets) + tests reading it back.
+- [x] T2 `apps/api/src/export/xlsx`: pure workbook builder (4 sheets) + tests reading it back.
 - [ ] T3 `apps/api/src/export/pdf`: pure doc definition builder + pdfmake rendering to Buffer + tests.
 - [ ] T4 `apps/api/src/http`: `/api/exports/pdf` and `/api/exports/xlsx` routes, headers, errors + supertest.
 - [ ] T5 `apps/web`: export buttons, states, download handling + component tests.
@@ -57,7 +57,8 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 
 - Engram mirror `odd/sprint-5-exports/tasks`: PENDING (host session registration failing in this session).
 - T1 (base `63526a5`): RED `export.test.ts` failed (module `./export.js` missing); GREEN shared 46/46 tests, typecheck, build. Adds `exportRequestFieldsSchema` (view = analysis view id), `ReportFormat`, `REPORT_CONTENT_TYPES`, `reportSlug`, `reportFileName`, `ErrorCode.InvalidView`.
+- T2 (previous `1c5e042`): RED workbook tests failed (module missing), then a second RED caught Resumen counts formatted as percent; GREEN 6/6 export tests. Percent applied per effectiveness cell only. Shared report copy/format in `export/report-copy.ts`, `export/format.ts`.
 
 ## Next step
 
-- Implement T2.
+- Implement T3.
