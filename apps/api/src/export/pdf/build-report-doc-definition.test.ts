@@ -74,7 +74,9 @@ describe('buildReportDocDefinition', () => {
 
   it('keeps the dashboard section order', () => {
     const all = texts(content(sampleView('branch-1')));
-    const order = ['Resumen', 'Podio', 'Observaciones', 'Ranking'].map((h) => all.indexOf(h));
+    const order = ['Resumen', 'Podio', 'Observaciones', 'Ranking', 'Control de caja'].map((h) =>
+      all.indexOf(h),
+    );
 
     expect(order.every((index) => index >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
@@ -86,6 +88,47 @@ describe('buildReportDocDefinition', () => {
     expect(all).toEqual(expect.arrayContaining(['Tickets', '469', 'Efectividad general']));
     expect(all).toContain('9,79 %');
     expect(all).toContain('4 turnos');
+  });
+
+  it('adds the cash control totals to the summary', () => {
+    const all = texts(content(sampleView('branch-1')));
+
+    expect(all).toEqual(
+      expect.arrayContaining(['% efectivo', '35,00 %', '% Club Grido', '60,00 %']),
+    );
+    expect(all).toEqual(expect.arrayContaining(['Diferencia de caja', '-$\u00a0100,00']));
+    expect(all).toContain('Faltante -$\u00a0100,00 · Sobrante $\u00a00,00');
+    expect(all).toEqual(expect.arrayContaining(['Ticket promedio', '$\u00a085,29']));
+  });
+
+  it('adds the cash control section with signals, per-cashier table and note', () => {
+    const nodes = content(sampleView('branch-1'));
+    const all = texts(nodes);
+
+    expect(all).toContain(
+      'Estos datos solo incluyen ventas tickeadas; las señales indican qué revisar, no prueban irregularidades.',
+    );
+    expect(all).toContain('Señal para revisar · 21/10 · Día · Ana');
+    expect(all).toContain(
+      'La diferencia de caja del turno fue -$\u00a0100,00 (2,50 % del efectivo). Conviene revisar el arqueo de ese turno.',
+    );
+    expect(all).toContain('Señal para revisar · Día · Bruno');
+    const table = findTable(nodes, 'Cajero');
+    expect(table?.table.headerRows).toBe(1);
+    const bruno = table?.table.body.find((row) => texts(row)[0] === 'Bruno');
+    expect(texts(bruno)).toEqual(expect.arrayContaining(['$\u00a010.000,00', '20,00 %']));
+  });
+
+  it('shows the empty state when a view has no signals', () => {
+    const all = texts(content(sampleView('branch-2')));
+
+    expect(all.filter((text) => text === 'Sin señales esta semana')).toHaveLength(2);
+  });
+
+  it('shows the branch of each signal in the combined view', () => {
+    const all = texts(content(sampleView('all')));
+
+    expect(all).toContain('Señal para revisar · Almirante · 21/10 · Día · Ana');
   });
 
   it('shows the podium steps, the vacant explanation and the requirements', () => {

@@ -11,6 +11,34 @@ const decimalFormat = new Intl.NumberFormat('es-AR', {
 
 export const NOT_CALCULABLE = 'No calculable';
 
+/** Same as the web: `$ 1.234,56` with a no-break space after the sign. */
+const moneyFormat = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+const signedMoneyFormat = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+  signDisplay: 'exceptZero',
+});
+
+/** `1234.56` → `$ 1.234,56`; `null` → `No calculable`. */
+export function formatMoney(value: number | null): string {
+  return value === null ? NOT_CALCULABLE : moneyFormat.format(value);
+}
+
+/** `2619.76` → `+$ 2.619,76`, `-6000` → `-$ 6.000,00`, `0` → `$ 0,00`. */
+export function formatSignedMoney(value: number): string {
+  return signedMoneyFormat.format(value);
+}
+
+/** `12.3456` → `12,35`; `null` → `No calculable`. */
+export function formatDecimal(value: number | null): string {
+  return value === null ? NOT_CALCULABLE : decimalFormat.format(value);
+}
+
+/** `2026-10-19T13:38:00` → `19/10` (sliced, never parsed). */
+export function formatDayMonth(value: string): string {
+  return `${value.slice(8, 10)}/${value.slice(5, 7)}`;
+}
+
 /** `18.8679…` → `18,87 %`; `null` → `No calculable`. */
 export function formatPercent(value: number | null): string {
   return value === null ? NOT_CALCULABLE : `${decimalFormat.format(value)} %`;

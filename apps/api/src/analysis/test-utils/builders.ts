@@ -24,6 +24,11 @@ export function shift(
     noActivadas: 10,
     rechazadas: 20,
     aceptadas: 10,
+    venta: 10000,
+    turEfectivo: 4000,
+    ventaClubGrido: 6000,
+    turDiferencia: 0,
+    slot: 'dia' as const,
     ...overrides,
   };
   return { ...base, activadas: base.rechazadas + base.aceptadas };

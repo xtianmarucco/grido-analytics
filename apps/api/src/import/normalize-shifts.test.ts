@@ -24,6 +24,10 @@ function raw(row: number, overrides: Partial<Record<RequiredColumn, RawCell>> = 
       sv_noactivada: 10,
       sv_rechazada: 20,
       sv_aceptada: 10,
+      venta: 132600.01,
+      turefectivo: 52300.5,
+      ventaclubgrido: 80000,
+      turdiferencia: -1530,
       desde: wallClock('2026-10-19T00:00:00'),
       hasta: wallClock('2026-10-25T00:00:00'),
       ...overrides,
@@ -69,9 +73,40 @@ describe('normalizeShifts: valid rows', () => {
         rechazadas: 20,
         aceptadas: 10,
         activadas: 30,
+        venta: 132600.01,
+        turEfectivo: 52300.5,
+        ventaClubGrido: 80000,
+        turDiferencia: -1530,
+        slot: 'dia',
       },
     ]);
     expect(result.warnings).toEqual([]);
+  });
+
+  it.each([
+    ['2026-10-19T00:00:00', 'dia'],
+    ['2026-10-19T14:59:59', 'dia'],
+    ['2026-10-19T15:00:00', 'noche'],
+    ['2026-10-19T23:30:00', 'noche'],
+  ])('assigns a shift starting at %s to the %s slot (wall clock)', (start, slot) => {
+    const { shifts } = normalizeShifts([
+      raw(2, { turiniciaturno: wallClock(start), turcierre: wallClock('2026-10-19T23:59:00') }),
+    ]);
+
+    expect(shifts[0]?.slot).toBe(slot);
+  });
+
+  it('reads money as decimals, rounds them to cents and keeps a positive difference', () => {
+    const { shifts } = normalizeShifts([
+      raw(2, { venta: '1000.5', turefectivo: 0, ventaclubgrido: 999.999, turdiferencia: 1600 }),
+    ]);
+
+    expect(shifts[0]).toMatchObject({
+      venta: 1000.5,
+      turEfectivo: 0,
+      ventaClubGrido: 1000,
+      turDiferencia: 1600,
+    });
   });
 
   it('gives the same identity to logins that differ only in case', () => {
@@ -145,6 +180,12 @@ describe('normalizeShifts: invalid rows', () => {
     ['a non-numeric branch code', { sucursal: 'uno' }, 'sucursal'],
     ['an empty branch name', { succodigo: null }, 'succodigo'],
     ['a boolean count', { sv_aceptada: true }, 'sv_aceptada'],
+    ['negative sales', { venta: -0.01 }, 'venta'],
+    ['negative cash', { turefectivo: -5 }, 'turefectivo'],
+    ['negative Club Grido sales', { ventaclubgrido: -1 }, 'ventaclubgrido'],
+    ['an empty cash difference', { turdiferencia: null }, 'turdiferencia'],
+    ['a text amount', { venta: '$ 1.000' }, 'venta'],
+    ['a date as an amount', { turefectivo: wallClock('2026-10-19T00:00:00') }, 'turefectivo'],
   ])('excludes a row with %s and warns', (_label, overrides, column) => {
     const result = normalizeShifts([raw(2), raw(3, overrides)]);
 
@@ -220,7 +261,7 @@ describe('normalizeShifts: duplicate turno', () => {
         row: 2,
         turno: 30,
         message:
-          'El turno 30 aparece 2 veces con los mismos datos (filas 2, 5). Se contó una sola vez.',
+          'El turno 30 de Almirante aparece 2 veces con los mismos datos (filas 2, 5). Se contó una sola vez.',
       },
     ]);
     expect(result.summary).toEqual({ totalRows: 3, includedRows: 2, excludedRows: 1 });
@@ -240,9 +281,28 @@ describe('normalizeShifts: duplicate turno', () => {
         row: 2,
         turno: 31,
         message:
-          'El turno 31 aparece 2 veces con datos distintos (filas 2, 4). No se incluyó ninguna de esas filas.',
+          'El turno 31 de Almirante aparece 2 veces con datos distintos (filas 2, 4). No se incluyó ninguna de esas filas.',
       },
     ]);
+  });
+
+  it('keeps the same turno number in different branches as different shifts', () => {
+    const result = normalizeShifts([
+      raw(2, { turno: 33 }),
+      raw(3, {
+        turno: 33,
+        succodigo: 'Barranquer',
+        sucursal: 2,
+        sv_aceptada: 9,
+        sv_noactivada: 11,
+      }),
+    ]);
+
+    expect(result.shifts.map((s) => [s.branchCode, s.turno])).toEqual([
+      [1, 33],
+      [2, 33],
+    ]);
+    expect(result.warnings).toEqual([]);
   });
 
   it('keeps the valid copy when the other copy is invalid', () => {

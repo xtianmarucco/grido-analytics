@@ -1,8 +1,25 @@
-import type { ViewSummary } from '@grido/shared';
-import { Calendar, Percent, Receipt, CheckCircle2, Users, Zap } from 'lucide-react';
+import type { CashSummary, ViewSummary } from '@grido/shared';
+import {
+  Banknote,
+  Calendar,
+  CheckCircle2,
+  Percent,
+  Receipt,
+  Scale,
+  Star,
+  Ticket,
+  Users,
+  Zap,
+} from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 
-import { formatInteger, formatPercent, formatPeriod } from '@/lib/format';
+import {
+  formatInteger,
+  formatMoney,
+  formatPercent,
+  formatPeriod,
+  formatSignedMoney,
+} from '@/lib/format';
 import { plural } from '@/lib/plural';
 import { cn } from '@/lib/utils';
 
@@ -15,9 +32,19 @@ interface SummaryCardProps {
   quiet?: boolean;
   /** The period does not fit the large figure size. */
   small?: boolean;
+  /** Money figures are longer: one step smaller so two cards fit side by side at 375 px. */
+  money?: boolean;
 }
 
-function SummaryCard({ title, icon: Icon, figure, caption, quiet, small }: SummaryCardProps) {
+function SummaryCard({
+  title,
+  icon: Icon,
+  figure,
+  caption,
+  quiet,
+  small,
+  money,
+}: SummaryCardProps) {
   return (
     <li className="flex flex-col gap-2 rounded-xl border bg-card p-4 shadow-xs md:p-5">
       <div className="flex items-start gap-2">
@@ -31,7 +58,8 @@ function SummaryCard({ title, icon: Icon, figure, caption, quiet, small }: Summa
           'font-semibold tabular-nums',
           small && 'text-base',
           quiet && 'text-lg text-muted-foreground md:text-xl',
-          !small && !quiet && 'text-2xl whitespace-nowrap md:text-3xl',
+          money && !quiet && 'text-lg whitespace-nowrap sm:text-xl md:text-2xl',
+          !small && !quiet && !money && 'text-2xl whitespace-nowrap md:text-3xl',
         )}
       >
         {figure}
@@ -41,14 +69,20 @@ function SummaryCard({ title, icon: Icon, figure, caption, quiet, small }: Summa
   );
 }
 
+export interface SummaryCardsProps {
+  summary: ViewSummary;
+  /** Cash control totals of the same view. */
+  cash: CashSummary;
+}
+
 /** Presentational: the view totals as returned by the API (guide §7.2). */
-export function SummaryCards({ summary }: { summary: ViewSummary }) {
+export function SummaryCards({ summary, cash }: SummaryCardsProps) {
   const [from, to] = formatPeriod(summary.period).split(' – ');
 
   return (
     <ul
       aria-label="Resumen de la vista"
-      className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6"
+      className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5"
     >
       <SummaryCard
         title="Período"
@@ -84,6 +118,34 @@ export function SummaryCards({ summary }: { summary: ViewSummary }) {
         icon={Users}
         figure={formatInteger(summary.cashierCount)}
         caption={plural(summary.shiftCount, 'turno', 'turnos')}
+      />
+      <SummaryCard
+        title="% efectivo"
+        icon={Banknote}
+        figure={formatPercent(cash.cashShare)}
+        quiet={cash.cashShare === null}
+        caption="De las ventas tickeadas"
+      />
+      <SummaryCard
+        title="% Club Grido"
+        icon={Star}
+        figure={formatPercent(cash.clubShare)}
+        quiet={cash.clubShare === null}
+        caption="De las ventas tickeadas"
+      />
+      <SummaryCard
+        title="Diferencia de caja"
+        icon={Scale}
+        money
+        figure={formatSignedMoney(cash.difference.net)}
+        caption={`Faltante ${formatSignedMoney(cash.difference.faltante)} · Sobrante ${formatSignedMoney(cash.difference.sobrante)}`}
+      />
+      <SummaryCard
+        title="Ticket promedio"
+        icon={Ticket}
+        money
+        figure={formatMoney(cash.averageTicket)}
+        quiet={cash.averageTicket === null}
       />
     </ul>
   );

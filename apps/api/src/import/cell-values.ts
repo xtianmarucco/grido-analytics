@@ -5,6 +5,8 @@ import type { RawCell } from './read-workbook.js';
 /** Pure cell parsers. Each returns `undefined` when the value is empty or invalid. */
 
 const INTEGER_TEXT = /^-?\d+$/;
+/** Plain decimal text with a dot (`1234.56`); grouped or currency text is rejected. */
+const DECIMAL_TEXT = /^-?\d+(\.\d+)?$/;
 const MS_PER_DAY = 86_400_000;
 /** Days between the Excel epoch (1899-12-30, 1900 system) and 1970-01-01. */
 const EXCEL_EPOCH_OFFSET_DAYS = 25_569;
@@ -26,6 +28,28 @@ export function parseCount(cell: RawCell): number | undefined {
 export function parsePositiveInteger(cell: RawCell): number | undefined {
   const value = parseInteger(cell);
   return value !== undefined && value > 0 ? value : undefined;
+}
+
+/** Rounds to whole cents. `toPrecision(15)` first drops binary artifacts (`10.005 * 100`). */
+export function toCents(value: number): number {
+  return Math.round(Number((value * 100).toPrecision(15)));
+}
+
+/** A money amount in pesos rounded to cents; any sign. */
+export function parseMoney(cell: RawCell): number | undefined {
+  let value: number;
+  if (typeof cell === 'number') value = cell;
+  else if (typeof cell === 'string' && DECIMAL_TEXT.test(cell.trim())) value = Number(cell.trim());
+  else return undefined;
+  if (!Number.isFinite(value)) return undefined;
+  const cents = toCents(value);
+  // `Math.round` keeps the sign of zero; normalize `-0` so JSON and comparisons stay plain.
+  return cents === 0 ? 0 : cents / 100;
+}
+
+export function parseNonNegativeMoney(cell: RawCell): number | undefined {
+  const value = parseMoney(cell);
+  return value !== undefined && value >= 0 ? value : undefined;
 }
 
 export function parseText(cell: RawCell): string | undefined {

@@ -9,6 +9,19 @@ export const REPORT_TITLE = 'Informe semanal de sobreventas';
 export const PODIUM_REQUIREMENTS =
   'Requisitos: al menos 30 tickets, una sobreventa aceptada y efectividad calculable.';
 
+export const CASH_CONTROL_TITLE = 'Control de caja';
+
+export const CASH_LIMITATION_NOTE =
+  'Estos datos solo incluyen ventas tickeadas; las señales indican qué revisar, no prueban irregularidades.';
+
+export const SIGNAL_LABEL = 'Señal para revisar';
+
+export const NO_SIGNALS_TEXT = 'Sin señales esta semana';
+
+export const SHIFT_ALERTS_TITLE = 'Diferencias de caja para revisar';
+
+export const LOW_CASH_TITLE = 'Efectivo bajo frente al resto del horario';
+
 export const VACANT_STEP_TEXT =
   'Puesto vacante: no hay suficientes cajeros que cumplan los requisitos del podio.';
 

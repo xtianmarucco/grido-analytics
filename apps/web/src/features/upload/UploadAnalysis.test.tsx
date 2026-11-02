@@ -21,6 +21,11 @@ const shift = {
   rechazadas: 20,
   aceptadas: 7,
   activadas: 27,
+  venta: 120000,
+  turEfectivo: 48000,
+  ventaClubGrido: 70000,
+  turDiferencia: 0,
+  slot: 'dia',
 };
 
 function analysis(warnings: unknown[] = [], analysisViews: unknown[] = views) {

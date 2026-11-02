@@ -79,7 +79,12 @@ Schema: `healthResponseSchema`.
         "noActivadas": 10,
         "rechazadas": 20,
         "aceptadas": 10,
-        "activadas": 30
+        "activadas": 30,
+        "venta": 132600.01,
+        "turEfectivo": 52300.5,
+        "ventaClubGrido": 80000,
+        "turDiferencia": -1530,
+        "slot": "dia"
       }
     ],
     "warnings": [
@@ -98,6 +103,8 @@ Schema: `healthResponseSchema`.
 - `startedAt` / `closedAt`: local wall-clock time, `YYYY-MM-DDTHH:mm:ss`, no timezone. Format
   them by slicing the string; never pass them through `new Date()`.
 - `period`: calendar dates from `desde` / `hasta`.
+- Money (Sprint 6, additive): pesos with cents as numbers; `turDiferencia` < 0 is a faltante.
+  `slot` is `dia` (start before 15:00 wall clock) or `noche`.
 - Warning codes: `INVALID_VALUE`, `TICKET_MISMATCH`, `DUPLICATE_SHIFT`, `CONFLICTING_DUPLICATE`.
   Rules in [BACKEND_RULES.md](BACKEND_RULES.md).
 - `views` (Sprint 3, additive: clients that only read `import` keep working): one view per
@@ -172,6 +179,95 @@ Schema: `healthResponseSchema`.
   cashier's `position` is its position among eligible cashiers.
 - `observations[].rule`: `O1`–`O6`; `cashierKey` only on per-cashier rules. Show texts as-is.
 
+### `cashControl` (Sprint 6)
+
+Every view adds `cashControl` (additive; schema `cashControlSchema`). Rules in
+[BUSINESS_RULES.md](BUSINESS_RULES.md#cash-control-sprint-6). Percentages are full precision
+(`null` = "No calculable"); money in pesos with cents.
+
+```json
+{
+  "summary": {
+    "shiftCount": 9,
+    "tickets": 300,
+    "venta": 132600.01,
+    "turEfectivo": 52300.5,
+    "ventaClubGrido": 80000,
+    "cashShare": 39.44,
+    "clubShare": 60.33,
+    "difference": {
+      "net": -1530,
+      "faltante": -1530,
+      "sobrante": 0,
+      "shiftsWithDifference": 1,
+      "alertedShifts": 1
+    },
+    "averageTicket": 442,
+    "hours": 60,
+    "ticketsPerHour": 5
+  },
+  "cashiers": [
+    {
+      "cashierKey": "ana",
+      "cashierName": "Ana",
+      "branchCodes": [1],
+      "...": "same fields as summary",
+      "slots": [
+        { "slot": "dia", "shiftCount": 3, "tickets": 120, "hours": 22.5, "ticketsPerHour": 5.33 }
+      ]
+    }
+  ],
+  "slots": [
+    {
+      "slot": "dia",
+      "shiftCount": 5,
+      "tickets": 180,
+      "venta": 70000,
+      "turEfectivo": 28000,
+      "cashShare": 40,
+      "hours": 35,
+      "ticketsPerHour": 5.14
+    }
+  ],
+  "shiftAlerts": [
+    {
+      "turno": 101,
+      "branchCode": 1,
+      "branchName": "Almirante",
+      "cashierKey": "ana",
+      "cashierName": "Ana",
+      "startedAt": "2026-10-21T08:00:00",
+      "slot": "dia",
+      "difference": -1530,
+      "turEfectivo": 52300.5,
+      "percentOfCash": 2.93,
+      "kind": "faltante",
+      "message": "La diferencia de caja del turno fue -$ 1.530,00 (2,93 % del efectivo). Conviene revisar el arqueo de ese turno."
+    }
+  ],
+  "lowCashSignals": [
+    {
+      "branchCode": 1,
+      "branchName": "Almirante",
+      "slot": "dia",
+      "cashierKey": "bruno",
+      "cashierName": "Bruno",
+      "shiftCount": 1,
+      "cashierShare": 25,
+      "peersShare": 37.5,
+      "gapPoints": 12.5,
+      "message": "En Almirante (Día), Bruno cobró en efectivo el 25,00 % de sus ventas (1 turno); el resto de los cajeros de ese horario, el 37,50 % (12,50 puntos más). Conviene revisar cómo se registraron los cobros de esos turnos."
+    }
+  ]
+}
+```
+
+- `cashiers` by `cashierKey` (merged across branches in `all`); `slots` `dia` first;
+  `shiftAlerts` by `startedAt`, then `turno`; `lowCashSignals` by branch, slot, then gap.
+- `percentOfCash` is `null` when the shift had no cash. Signals never mix branches; `all` lists
+  the union of the branch signals.
+- The new money columns are required: a file without them is 422 `MISSING_COLUMNS`.
+
 ## POST /api/exports/pdf · POST /api/exports/xlsx
 
 - Body: `multipart/form-data`: field `file` (same rules as `/api/analysis`) and field `view`,
@@ -194,7 +290,14 @@ Schema: `healthResponseSchema`.
 - PDF (A4 portrait): title "Informe semanal de sobreventas", view, period, generation date
   (`dd/mm/yyyy HH:mm`, server local time); Resumen; Podio (vacant / covered-by-tie texts);
   Observaciones (Dato / Interpretación / Recomendación); Ranking with eligibility reasons;
-  footer with the podium requirements and "Página X de Y".
+  Control de caja (limitation note, alerted shifts, low-cash signals, per-cashier table; the
+  Resumen adds % efectivo, % Club Grido, Diferencia de caja, Ticket promedio, Tickets por hora,
+  Turnos a revisar); footer with the podium requirements and "Página X de Y".
 - Excel sheets: `Resumen`, `Ranking` (bold frozen header, autofilter), `Podio`,
-  `Observaciones`. Counts are numbers; effectiveness is a fraction with format `0.00%`
+  `Observaciones`, `Control de caja` (per-cashier indicators, then the blocks "Diferencias de
+  caja para revisar" and "Efectivo bajo frente al resto del horario" — "Sin señales esta semana"
+  when empty — and the limitation note). `Resumen` adds Ventas, % efectivo, % Club Grido,
+  Diferencia de caja, Faltante, Sobrante, Turnos a revisar, Ticket promedio, Tickets por hora.
+  Money cells are numbers with format `"$" #,##0.00`; percentages are fractions with `0.00%`;
+  hours, tickets per hour and points use `0.00`. Counts are numbers; effectiveness is a fraction with format `0.00%`
   (`18.8679…` → `0.188679…`, shown `18.87%`); `null` is the text "No calculable".

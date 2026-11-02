@@ -13,6 +13,15 @@ describe('AnalysisDashboard', () => {
     expect(screen.getAllByText('19/10/2026 – 25/10/2026').length).toBeGreaterThan(0);
   });
 
+  it('shows the cash control section right after the ranking', () => {
+    render(<AnalysisDashboard analysis={analysisResponse()} />);
+
+    const titles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(titles.indexOf('Control de caja')).toBe(titles.indexOf('Ranking') + 1);
+    // Combined view: alerts carry the branch name.
+    expect(screen.getAllByText(/^Almirante · /).length).toBeGreaterThan(0);
+  });
+
   it('falls back to the first view when there is no combined view', () => {
     render(<AnalysisDashboard analysis={analysisResponse({ views: [view()] })} />);
 

@@ -1,23 +1,40 @@
-import type { AnalysisView, Effectiveness, PodiumStep, RankingEntry } from '@grido/shared';
+import type {
+  AnalysisView,
+  CashierCashIndicators,
+  Effectiveness,
+  PodiumStep,
+  RankingEntry,
+  ShiftSlot,
+} from '@grido/shared';
 import ExcelJS from 'exceljs';
 
+import { SLOT_LABELS } from '../../analysis/cash-control.js';
 import {
   formatBranches,
+  formatDate,
   formatGeneratedAt,
   formatOrdinal,
   formatPeriod,
   NOT_CALCULABLE,
 } from '../format.js';
 import {
+  CASH_CONTROL_TITLE,
+  CASH_LIMITATION_NOTE,
   emptyStepText,
+  LOW_CASH_TITLE,
+  NO_SIGNALS_TEXT,
   OBSERVATION_TITLES,
   PODIUM_REQUIREMENTS,
   podiumStatusLabel,
   REPORT_TITLE,
+  SHIFT_ALERTS_TITLE,
 } from '../report-copy.js';
 import type { ReportMeta } from '../report-meta.js';
 
 const PERCENT_FORMAT = '0.00%';
+/** Pesos with cents; Excel applies the reader's locale separators. */
+export const MONEY_FORMAT = '"$" #,##0.00';
+const DECIMAL_FORMAT = '0.00';
 
 interface Column {
   header: string;
@@ -29,7 +46,22 @@ interface PercentValue {
   fraction: number;
 }
 
-type CellValue = string | number | PercentValue | null;
+/** Pesos shown with `MONEY_FORMAT`. */
+interface MoneyValue {
+  money: number;
+}
+
+/** A plain number shown with two decimals (hours, tickets per hour, points). */
+interface DecimalValue {
+  decimal: number;
+}
+
+type CellValue = string | number | PercentValue | MoneyValue | DecimalValue | null;
+
+const money = (value: number | null): CellValue =>
+  value === null ? NOT_CALCULABLE : { money: value };
+const decimal = (value: number | null): CellValue =>
+  value === null ? NOT_CALCULABLE : { decimal: value };
 
 /**
  * Effectiveness as an Excel percent: the analysis percent as a fraction (`18.87` → `0.1887`) so
@@ -37,6 +69,34 @@ type CellValue = string | number | PercentValue | null;
  */
 function effectivenessCell(value: Effectiveness): CellValue {
   return value === null ? NOT_CALCULABLE : { fraction: value / 100 };
+}
+
+/** A percent (`39.44`) as an Excel fraction; `null` stays "No calculable". */
+const percentCell = effectivenessCell;
+
+function rawValue(value: CellValue): ExcelJS.CellValue | undefined {
+  if (value === null) return undefined;
+  if (typeof value !== 'object') return value;
+  if ('fraction' in value) return value.fraction;
+  if ('money' in value) return value.money;
+  return value.decimal;
+}
+
+function numberFormat(value: CellValue): string | undefined {
+  if (value === null || typeof value !== 'object') return undefined;
+  if ('fraction' in value) return PERCENT_FORMAT;
+  if ('money' in value) return MONEY_FORMAT;
+  return DECIMAL_FORMAT;
+}
+
+/** Appends one row; empty cells stay unset rather than holding empty strings. */
+function writeRow(sheet: ExcelJS.Worksheet, values: readonly CellValue[]): ExcelJS.Row {
+  const row = sheet.addRow(values.map(rawValue));
+  values.forEach((value, index) => {
+    const format = numberFormat(value);
+    if (format) row.getCell(index + 1).numFmt = format;
+  });
+  return row;
 }
 
 function addTable(
@@ -48,23 +108,13 @@ function addTable(
   const sheet = workbook.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 1 }] });
   sheet.columns = columns.map((column) => ({ header: column.header, width: column.width }));
   sheet.getRow(1).font = { bold: true };
-  for (const values of rows) {
-    // Empty cells stay unset rather than holding empty strings.
-    const row = sheet.addRow(
-      values.map((value) =>
-        value === null ? undefined : typeof value === 'object' ? value.fraction : value,
-      ),
-    );
-    values.forEach((value, index) => {
-      if (value !== null && typeof value === 'object')
-        row.getCell(index + 1).numFmt = PERCENT_FORMAT;
-    });
-  }
+  for (const values of rows) writeRow(sheet, values);
   return sheet;
 }
 
 function resumenSheet(workbook: ExcelJS.Workbook, view: AnalysisView, meta: ReportMeta): void {
   const { summary } = view;
+  const cash = view.cashControl.summary;
   addTable(
     workbook,
     'Resumen',
@@ -83,6 +133,15 @@ function resumenSheet(workbook: ExcelJS.Workbook, view: AnalysisView, meta: Repo
       ['Efectividad general', effectivenessCell(summary.effectiveness)],
       ['Cajeros', summary.cashierCount],
       ['Turnos', summary.shiftCount],
+      ['Ventas', money(cash.venta)],
+      ['% efectivo', percentCell(cash.cashShare)],
+      ['% Club Grido', percentCell(cash.clubShare)],
+      ['Diferencia de caja', money(cash.difference.net)],
+      ['Faltante', money(cash.difference.faltante)],
+      ['Sobrante', money(cash.difference.sobrante)],
+      ['Turnos a revisar', cash.difference.alertedShifts],
+      ['Ticket promedio', money(cash.averageTicket)],
+      ['Tickets por hora', decimal(cash.ticketsPerHour)],
       ['Generado', formatGeneratedAt(meta.generatedAt)],
     ],
   );
@@ -179,9 +238,141 @@ function observationsSheet(workbook: ExcelJS.Workbook, view: AnalysisView): void
   });
 }
 
+const CASHIER_COLUMNS: Column[] = [
+  { header: 'Cajero', width: 22 },
+  { header: 'Sucursales', width: 26 },
+  { header: 'Turnos', width: 9 },
+  { header: 'Tickets', width: 10 },
+  { header: 'Ventas', width: 16 },
+  { header: 'Efectivo', width: 16 },
+  { header: '% efectivo', width: 12 },
+  { header: 'Club Grido', width: 16 },
+  { header: '% Club Grido', width: 13 },
+  { header: 'Diferencia neta', width: 16 },
+  { header: 'Faltante', width: 14 },
+  { header: 'Sobrante', width: 14 },
+  { header: 'Turnos con diferencia', width: 12 },
+  { header: 'Turnos a revisar', width: 12 },
+  { header: 'Ticket promedio', width: 16 },
+  { header: 'Horas', width: 10 },
+  { header: 'Tickets por hora', width: 12 },
+  { header: 'Tickets por hora (Día)', width: 12 },
+  { header: 'Tickets por hora (Noche)', width: 12 },
+];
+
+function slotRate(cashier: CashierCashIndicators, slot: ShiftSlot): CellValue {
+  const stats = cashier.slots.find((s) => s.slot === slot);
+  return stats ? decimal(stats.ticketsPerHour) : null;
+}
+
+function cashierRow(cashier: CashierCashIndicators, meta: ReportMeta): CellValue[] {
+  return [
+    cashier.cashierName,
+    formatBranches(cashier.branchCodes, meta.branchNames),
+    cashier.shiftCount,
+    cashier.tickets,
+    money(cashier.venta),
+    money(cashier.turEfectivo),
+    percentCell(cashier.cashShare),
+    money(cashier.ventaClubGrido),
+    percentCell(cashier.clubShare),
+    money(cashier.difference.net),
+    money(cashier.difference.faltante),
+    money(cashier.difference.sobrante),
+    cashier.difference.shiftsWithDifference,
+    cashier.difference.alertedShifts,
+    money(cashier.averageTicket),
+    decimal(cashier.hours),
+    decimal(cashier.ticketsPerHour),
+    slotRate(cashier, 'dia'),
+    slotRate(cashier, 'noche'),
+  ];
+}
+
+/** A block below the per-cashier table: bold title, bold header, rows or the empty text. */
+function addBlock(
+  sheet: ExcelJS.Worksheet,
+  title: string,
+  headers: readonly string[],
+  rows: readonly CellValue[][],
+): void {
+  sheet.addRow([]);
+  sheet.addRow([title]).font = { bold: true };
+  if (rows.length === 0) {
+    sheet.addRow([NO_SIGNALS_TEXT]);
+    return;
+  }
+  sheet.addRow([...headers]).font = { bold: true };
+  for (const values of rows) writeRow(sheet, values);
+}
+
+function cashControlSheet(workbook: ExcelJS.Workbook, view: AnalysisView, meta: ReportMeta): void {
+  const { cashiers, shiftAlerts, lowCashSignals } = view.cashControl;
+  const sheet = addTable(
+    workbook,
+    CASH_CONTROL_TITLE,
+    CASHIER_COLUMNS,
+    cashiers.map((cashier) => cashierRow(cashier, meta)),
+  );
+  addBlock(
+    sheet,
+    SHIFT_ALERTS_TITLE,
+    [
+      'Fecha',
+      'Horario',
+      'Sucursal',
+      'Cajero',
+      'Turno',
+      'Diferencia',
+      'Efectivo',
+      '% del efectivo',
+      'Tipo',
+      'Detalle',
+    ],
+    shiftAlerts.map((alert) => [
+      formatDate(alert.startedAt.slice(0, 10)),
+      SLOT_LABELS[alert.slot],
+      alert.branchName,
+      alert.cashierName,
+      alert.turno,
+      money(alert.difference),
+      money(alert.turEfectivo),
+      alert.percentOfCash === null ? 'Sin efectivo' : percentCell(alert.percentOfCash),
+      alert.kind === 'faltante' ? 'Faltante' : 'Sobrante',
+      alert.message,
+    ]),
+  );
+  addBlock(
+    sheet,
+    LOW_CASH_TITLE,
+    [
+      'Sucursal',
+      'Horario',
+      'Cajero',
+      'Turnos',
+      '% efectivo del cajero',
+      '% efectivo del resto',
+      'Diferencia (puntos)',
+      'Detalle',
+    ],
+    lowCashSignals.map((signal) => [
+      signal.branchName,
+      SLOT_LABELS[signal.slot],
+      signal.cashierName,
+      signal.shiftCount,
+      percentCell(signal.cashierShare),
+      percentCell(signal.peersShare),
+      decimal(signal.gapPoints),
+      signal.message,
+    ]),
+  );
+  sheet.addRow([]);
+  sheet.addRow([CASH_LIMITATION_NOTE]);
+}
+
 /**
- * Pure: the Excel report of one analysis view. Sheets `Resumen`, `Ranking`, `Podio` and
- * `Observaciones`. It only lays out the view; every figure comes from the analysis.
+ * Pure: the Excel report of one analysis view. Sheets `Resumen`, `Ranking`, `Podio`,
+ * `Observaciones` and `Control de caja`. It only lays out the view; every figure comes from the analysis.
  */
 export function buildReportWorkbook(view: AnalysisView, meta: ReportMeta): ExcelJS.Workbook {
   const workbook = new ExcelJS.Workbook();
@@ -191,6 +382,7 @@ export function buildReportWorkbook(view: AnalysisView, meta: ReportMeta): Excel
   rankingSheet(workbook, view, meta);
   podiumSheet(workbook, view);
   observationsSheet(workbook, view);
+  cashControlSheet(workbook, view, meta);
   return workbook;
 }
 

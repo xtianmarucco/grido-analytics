@@ -4,11 +4,27 @@ import {
   type ImportResult,
   type ImportWarning,
   type NormalizedShift,
+  ShiftSlot,
 } from '@grido/shared';
 
-import { parseCount, parsePositiveInteger, parseText, parseWallClock } from './cell-values.js';
+import {
+  parseCount,
+  parseMoney,
+  parseNonNegativeMoney,
+  parsePositiveInteger,
+  parseText,
+  parseWallClock,
+} from './cell-values.js';
 import { ImportError } from './errors.js';
 import type { RawRow, RequiredColumn } from './read-workbook.js';
+
+/** Wall-clock hour from which a shift belongs to the night slot. */
+export const NIGHT_SLOT_START_HOUR = 15;
+
+/** `dia` when the shift starts before 15:00 (wall clock, no timezone conversion), else `noche`. */
+export function shiftSlot(startedAt: string): ShiftSlot {
+  return Number(startedAt.slice(11, 13)) < NIGHT_SLOT_START_HOUR ? ShiftSlot.Day : ShiftSlot.Night;
+}
 
 /** Source branch names that are abbreviated in the export. Keys are lowercase. */
 const BRANCH_DISPLAY_NAMES: Readonly<Record<string, string>> = {
@@ -95,6 +111,10 @@ function normalizeRow({ row, values }: RawRow): RowOutcome {
   const noActivadas = check('sv_noactivada', parseCount(values.sv_noactivada));
   const rechazadas = check('sv_rechazada', parseCount(values.sv_rechazada));
   const aceptadas = check('sv_aceptada', parseCount(values.sv_aceptada));
+  const venta = check('venta', parseNonNegativeMoney(values.venta));
+  const turEfectivo = check('turefectivo', parseNonNegativeMoney(values.turefectivo));
+  const turDiferencia = check('turdiferencia', parseMoney(values.turdiferencia));
+  const ventaClubGrido = check('ventaclubgrido', parseNonNegativeMoney(values.ventaclubgrido));
   const from = check('desde', parseWallClock(values.desde));
   const to = check('hasta', parseWallClock(values.hasta));
 
@@ -121,6 +141,10 @@ function normalizeRow({ row, values }: RawRow): RowOutcome {
     noActivadas === undefined ||
     rechazadas === undefined ||
     aceptadas === undefined ||
+    venta === undefined ||
+    turEfectivo === undefined ||
+    turDiferencia === undefined ||
+    ventaClubGrido === undefined ||
     from === undefined ||
     to === undefined
   ) {
@@ -161,23 +185,33 @@ function normalizeRow({ row, values }: RawRow): RowOutcome {
       rechazadas,
       aceptadas,
       activadas: rechazadas + aceptadas,
+      venta,
+      turEfectivo,
+      ventaClubGrido,
+      turDiferencia,
+      slot: shiftSlot(startedAt),
     },
   };
 }
 
-/** Same `turno`: identical copies count once; differing copies are all excluded. */
+/**
+ * Same branch + `turno`: identical copies count once; differing copies are all excluded.
+ * Each branch numbers its shifts independently, so the same number in two branches is two shifts.
+ */
 function removeDuplicates(shifts: NormalizedShift[], warnings: ImportWarning[]): NormalizedShift[] {
-  const groups = new Map<number, NormalizedShift[]>();
+  const groups = new Map<string, NormalizedShift[]>();
   for (const shift of shifts) {
-    const group = groups.get(shift.turno);
+    const key = shiftKey(shift);
+    const group = groups.get(key);
     if (group) group.push(shift);
-    else groups.set(shift.turno, [shift]);
+    else groups.set(key, [shift]);
   }
 
   const kept: NormalizedShift[] = [];
-  for (const [turno, group] of groups) {
+  for (const group of groups.values()) {
     const [first] = group;
     if (!first) continue;
+    const { turno } = first;
     if (group.length === 1) {
       kept.push(first);
       continue;
@@ -188,13 +222,17 @@ function removeDuplicates(shifts: NormalizedShift[], warnings: ImportWarning[]):
     warnings.push({
       code: identical ? ImportWarningCode.DuplicateShift : ImportWarningCode.ConflictingDuplicate,
       message: identical
-        ? `El turno ${turno} aparece ${group.length} veces con los mismos datos (filas ${rows}). Se contó una sola vez.`
-        : `El turno ${turno} aparece ${group.length} veces con datos distintos (filas ${rows}). No se incluyó ninguna de esas filas.`,
+        ? `El turno ${turno} de ${first.branchName} aparece ${group.length} veces con los mismos datos (filas ${rows}). Se contó una sola vez.`
+        : `El turno ${turno} de ${first.branchName} aparece ${group.length} veces con datos distintos (filas ${rows}). No se incluyó ninguna de esas filas.`,
       row: first.row,
       turno,
     });
   }
   return kept;
+}
+
+function shiftKey(shift: NormalizedShift): string {
+  return `${shift.branchCode}:${shift.turno}`;
 }
 
 function sameData(a: NormalizedShift, b: NormalizedShift): boolean {

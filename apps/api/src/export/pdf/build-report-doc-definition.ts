@@ -1,26 +1,40 @@
 import {
   type AnalysisView,
+  type CashierCashIndicators,
+  type LowCashSignal,
   type Observation,
   type PodiumStep,
   PodiumStepStatus,
   type RankingEntry,
+  type ShiftAlert,
 } from '@grido/shared';
 import type { Content, TableCell, TDocumentDefinitions } from 'pdfmake/interfaces.js';
 
+import { SLOT_LABELS } from '../../analysis/cash-control.js';
 import {
   formatBranches,
+  formatDayMonth,
+  formatDecimal,
   formatGeneratedAt,
   formatInteger,
+  formatMoney,
   formatOrdinal,
   formatPercent,
   formatPeriod,
+  formatSignedMoney,
   plural,
 } from '../format.js';
 import {
+  CASH_CONTROL_TITLE,
+  CASH_LIMITATION_NOTE,
   emptyStepText,
+  LOW_CASH_TITLE,
+  NO_SIGNALS_TEXT,
   OBSERVATION_TITLES,
   PODIUM_REQUIREMENTS,
   REPORT_TITLE,
+  SHIFT_ALERTS_TITLE,
+  SIGNAL_LABEL,
 } from '../report-copy.js';
 import type { ReportMeta } from '../report-meta.js';
 
@@ -37,6 +51,8 @@ const COLOR = {
   border: '#D5DDE8',
   input: '#7E8B9C',
   success: '#15803D',
+  /** Amber "Señal para revisar"; never the destructive red. */
+  warning: '#B45309',
   podium: {
     1: { fill: '#F2C14E', text: '#3D2C00', edge: '#A27A12' },
     2: { fill: '#D3DAE3', text: '#0F1B2D', edge: '#7B8794' },
@@ -76,6 +92,7 @@ function summaryCard(label: string, value: string, caption?: string): TableCell 
 
 function summary(view: AnalysisView, meta: ReportMeta): Content[] {
   const { summary: s } = view;
+  const cash = view.cashControl.summary;
   return [
     sectionTitle('Resumen'),
     {
@@ -102,6 +119,24 @@ function summary(view: AnalysisView, meta: ReportMeta): Content[] {
               'Cajeros',
               formatInteger(s.cashierCount),
               plural(s.shiftCount, 'turno', 'turnos'),
+            ),
+          ],
+          [
+            summaryCard('% efectivo', formatPercent(cash.cashShare), 'De las ventas tickeadas'),
+            summaryCard('% Club Grido', formatPercent(cash.clubShare), 'De las ventas tickeadas'),
+            summaryCard(
+              'Diferencia de caja',
+              formatSignedMoney(cash.difference.net),
+              `Faltante ${formatSignedMoney(cash.difference.faltante)} · Sobrante ${formatSignedMoney(cash.difference.sobrante)}`,
+            ),
+          ],
+          [
+            summaryCard('Ticket promedio', formatMoney(cash.averageTicket)),
+            summaryCard('Tickets por hora', formatDecimal(cash.ticketsPerHour)),
+            summaryCard(
+              'Turnos a revisar',
+              formatInteger(cash.difference.alertedShifts),
+              'Diferencia de caja ≥ 1 % del efectivo',
             ),
           ],
         ],
@@ -260,9 +295,129 @@ function ranking(view: AnalysisView, meta: ReportMeta): Content[] {
   ];
 }
 
+function signalItem(heading: string, detail: string, message: string): Content {
+  return {
+    stack: [
+      { text: `${SIGNAL_LABEL} · ${heading}`, bold: true, color: COLOR.warning },
+      { text: detail, margin: [0, 1, 0, 0] },
+      { text: message, color: COLOR.mutedForeground, margin: [0, 1, 0, 0] },
+    ],
+    margin: [0, 0, 0, 6],
+    unbreakable: true,
+  };
+}
+
+function alertItem(alert: ShiftAlert, combined: boolean): Content {
+  const branch = combined ? `${alert.branchName} · ` : '';
+  const share =
+    alert.percentOfCash === null
+      ? 'Sin efectivo en el turno'
+      : `${formatPercent(alert.percentOfCash)} del efectivo`;
+  return signalItem(
+    `${branch}${formatDayMonth(alert.startedAt)} · ${SLOT_LABELS[alert.slot]} · ${alert.cashierName}`,
+    `${formatSignedMoney(alert.difference)} · ${share}`,
+    alert.message,
+  );
+}
+
+function lowCashItem(signal: LowCashSignal, combined: boolean): Content {
+  const branch = combined ? `${signal.branchName} · ` : '';
+  return signalItem(
+    `${branch}${SLOT_LABELS[signal.slot]} · ${signal.cashierName}`,
+    `Efectivo ${formatPercent(signal.cashierShare)} · resto ${formatPercent(signal.peersShare)} · ${formatDecimal(signal.gapPoints)} puntos menos`,
+    signal.message,
+  );
+}
+
+function signalBlock(title: string, items: readonly Content[]): Content[] {
+  return [
+    { text: title, style: 'subsection' },
+    items.length === 0
+      ? { text: NO_SIGNALS_TEXT, color: COLOR.mutedForeground }
+      : { stack: [...items] },
+  ];
+}
+
+const CASHIER_HEADERS = [
+  'Cajero',
+  'Ventas',
+  '% efectivo',
+  '% Club Grido',
+  'Diferencia',
+  'Ticket prom.',
+  'Tickets/h',
+];
+
+function cashierCashRow(cashier: CashierCashIndicators): TableCell[] {
+  const number = (text: string, quiet = false): TableCell => ({
+    text,
+    alignment: 'right',
+    ...(quiet ? { color: COLOR.mutedForeground } : {}),
+  });
+  const slots = cashier.slots
+    .map((slot) => `${SLOT_LABELS[slot.slot]} ${formatDecimal(slot.ticketsPerHour)}`)
+    .join(' · ');
+  const difference: Content[] = [{ text: formatSignedMoney(cashier.difference.net) }];
+  if (cashier.difference.alertedShifts > 0)
+    difference.push({
+      text: plural(cashier.difference.alertedShifts, 'turno a revisar', 'turnos a revisar'),
+      style: 'caption',
+      color: COLOR.warning,
+    });
+  return [
+    {
+      stack: [
+        { text: cashier.cashierName },
+        { text: plural(cashier.shiftCount, 'turno', 'turnos'), style: 'caption' },
+      ],
+    },
+    number(formatMoney(cashier.venta)),
+    number(formatPercent(cashier.cashShare), cashier.cashShare === null),
+    number(formatPercent(cashier.clubShare), cashier.clubShare === null),
+    { stack: difference, alignment: 'right' },
+    number(formatMoney(cashier.averageTicket), cashier.averageTicket === null),
+    {
+      stack: [{ text: formatDecimal(cashier.ticketsPerHour) }, { text: slots, style: 'caption' }],
+      alignment: 'right',
+    },
+  ];
+}
+
+function cashControl(view: AnalysisView): Content[] {
+  const { cashiers, shiftAlerts, lowCashSignals } = view.cashControl;
+  const combined = view.branchCodes.length > 1;
+  const header = CASHIER_HEADERS.map((text, index): TableCell => ({
+    text,
+    style: 'tableHeader',
+    alignment: index === 0 ? 'left' : 'right',
+  }));
+  return [
+    sectionTitle(CASH_CONTROL_TITLE),
+    { text: CASH_LIMITATION_NOTE, style: 'caption', margin: [0, 0, 0, 4] },
+    ...signalBlock(
+      SHIFT_ALERTS_TITLE,
+      shiftAlerts.map((alert) => alertItem(alert, combined)),
+    ),
+    ...signalBlock(
+      LOW_CASH_TITLE,
+      lowCashSignals.map((signal) => lowCashItem(signal, combined)),
+    ),
+    { text: 'Indicadores por cajero', style: 'subsection' },
+    {
+      table: {
+        headerRows: 1,
+        dontBreakRows: true,
+        widths: ['*', 72, 50, 54, 70, 62, 62],
+        body: [header, ...cashiers.map(cashierCashRow)],
+      },
+      layout: GRID_LAYOUT,
+    },
+  ];
+}
+
 /**
  * Pure: the pdfmake document of one analysis view, in the dashboard order (summary → podium →
- * observations → ranking). It only lays out the view; every figure comes from the analysis.
+ * observations → ranking → cash control). It only lays out the view; every figure comes from the analysis.
  */
 export function buildReportDocDefinition(
   view: AnalysisView,
@@ -275,7 +430,7 @@ export function buildReportDocDefinition(
           { text: EMPTY_VIEW_TEXT, color: COLOR.mutedForeground },
           ...observations(view),
         ]
-      : [...podium(view), ...observations(view), ...ranking(view, meta)];
+      : [...podium(view), ...observations(view), ...ranking(view, meta), ...cashControl(view)];
 
   return {
     pageSize: 'A4',
@@ -301,6 +456,7 @@ export function buildReportDocDefinition(
       title: { fontSize: 18, bold: true, color: COLOR.primary },
       subtitle: { fontSize: 12, bold: true, margin: [0, 4, 0, 2] },
       section: { fontSize: 13, bold: true, color: COLOR.primary, margin: [0, 16, 0, 6] },
+      subsection: { fontSize: 10, bold: true, margin: [0, 8, 0, 4] },
       caption: { fontSize: 8, color: COLOR.mutedForeground },
       cardLabel: { fontSize: 8, color: COLOR.mutedForeground },
       cardValue: { fontSize: 14, bold: true, margin: [0, 2, 0, 2] },

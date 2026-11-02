@@ -85,6 +85,34 @@ zero aceptadas get only O5 (user decision 2026-11-02). O2 also applies to podium
 because a podium place among few eligible cashiers does not imply good effectiveness. Thresholds
 are compared exactly on integer counts.
 
+## Cash control (Sprint 6)
+
+Implemented in `apps/api/src/analysis/cash-control.ts`. Same rule as effectiveness: sum first,
+never average percentages; round only for display. Money is read rounded to cents.
+
+| Indicator          | Formula                                                              | Base zero → |
+| ------------------ | -------------------------------------------------------------------- | ----------- |
+| % efectivo         | Σ`turefectivo` / Σ`venta` × 100                                      | `null`      |
+| % Club Grido       | Σ`ventaclubgrido` / Σ`venta` × 100 (always a %, never $)             | `null`      |
+| Diferencia de caja | net Σ`turdiferencia`; faltante = Σ negatives; sobrante = Σ positives | —           |
+| Ticket promedio    | Σ`venta` / Σ`totaltiquets`                                           | `null`      |
+| Tickets por hora   | Σ`totaltiquets` / Σ(`turcierre` − `turiniciaturno`) in hours         | `null`      |
+
+- **Slot**: `dia` when the wall-clock hour of `turiniciaturno` is < 15, else `noche` (labels
+  "Día" / "Noche"; no timezone conversion). Tickets per hour is also given per cashier per slot.
+- **Shift alert** ("Señal para revisar"): `|turdiferencia| ≥ 1 %` of that shift's
+  `turefectivo`, faltante or sobrante, inclusive. Compared on integer cents:
+  `|dif| × 100 ≥ efectivo`. `turefectivo = 0` with a non-zero difference → alert (no %).
+- **Low-cash signal** ("Señal para revisar"): in one branch + slot, the cashier's % efectivo is
+  ≥ 10 points below the peers' (the other cashiers' totals in that branch + slot), inclusive,
+  no minimum shifts. Compared exactly by cross-multiplication on cents
+  (`10 × (Ep·Vc − Ec·Vp) ≥ Vp·Vc`). No peers, or Σ`venta` = 0 on either side → no signal.
+- **Combined view**: cashier indicators merge branches; signals are always computed within
+  branch + slot (never across branches) and listed as the union, each with its branch.
+- Texts are neutral facts plus a cautious recommendation, never causal or accusatory. The
+  section always shows: "Estos datos solo incluyen ventas tickeadas; las señales indican qué
+  revisar, no prueban irregularidades."
+
 ## Validation
 
 Implemented in Sprint 2 (`apps/api/src/import`); full detail in
@@ -98,12 +126,13 @@ Implemented in Sprint 2 (`apps/api/src/import`); full detail in
 | No valid row left                        | Whole file rejected    |
 | Invalid row                              | Row excluded + warning |
 | Counts do not add up to `totaltiquets`   | Row excluded + warning |
-| Duplicate `turno`, identical rows        | Counted once + warning |
-| Duplicate `turno`, differing data        | All excluded + warning |
+| Duplicate branch + `turno`, identical    | Counted once + warning |
+| Duplicate branch + `turno`, differing    | All excluded + warning |
 
 Rows with content are never dropped silently.
 
 ## Scope
 
 - Period: one week (`desde` / `hasta`).
-- Money columns are ignored in the MVP.
+- Money columns `venta`, `turefectivo`, `ventaclubgrido` and `turdiferencia` feed cash control
+  (Sprint 6, D-41); the other payment and cash-count columns are still ignored.

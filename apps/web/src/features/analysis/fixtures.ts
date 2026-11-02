@@ -5,6 +5,8 @@
 import type {
   AnalysisResponse,
   AnalysisView,
+  CashControl,
+  CashierCashIndicators,
   ImportResult,
   Observation,
   PodiumStep,
@@ -94,6 +96,136 @@ export function podium(
   return steps;
 }
 
+const noDifference = {
+  net: 0,
+  faltante: 0,
+  sobrante: 0,
+  shiftsWithDifference: 0,
+  alertedShifts: 0,
+};
+
+export function cashier(overrides: Partial<CashierCashIndicators> = {}): CashierCashIndicators {
+  const name = overrides.cashierName ?? 'Carla';
+  return {
+    cashierKey: name.toLowerCase(),
+    cashierName: name,
+    branchCodes: [1],
+    shiftCount: 4,
+    tickets: 120,
+    venta: 360000,
+    turEfectivo: 144000,
+    ventaClubGrido: 216000,
+    cashShare: 40,
+    clubShare: 60,
+    difference: noDifference,
+    averageTicket: 3000,
+    hours: 30,
+    ticketsPerHour: 4,
+    slots: [
+      { slot: 'dia', shiftCount: 2, tickets: 70, hours: 14, ticketsPerHour: 5 },
+      { slot: 'noche', shiftCount: 2, tickets: 50, hours: 16, ticketsPerHour: 3.125 },
+    ],
+    ...overrides,
+  };
+}
+
+export function cashControl(overrides: Partial<CashControl> = {}): CashControl {
+  return {
+    summary: {
+      shiftCount: 16,
+      tickets: 1234,
+      venta: 1234567.89,
+      turEfectivo: 486913.56,
+      ventaClubGrido: 778900.12,
+      cashShare: 39.44,
+      clubShare: 63.09,
+      difference: {
+        net: -1680.17,
+        faltante: -9870.4,
+        sobrante: 2619.76,
+        shiftsWithDifference: 5,
+        alertedShifts: 2,
+      },
+      averageTicket: 1000.46,
+      hours: 120,
+      ticketsPerHour: 10.28,
+    },
+    cashiers: [
+      cashier({
+        difference: {
+          net: -6000,
+          faltante: -6000,
+          sobrante: 0,
+          shiftsWithDifference: 1,
+          alertedShifts: 1,
+        },
+      }),
+      cashier({
+        cashierName: 'Ana',
+        cashShare: null,
+        clubShare: null,
+        averageTicket: null,
+        ticketsPerHour: null,
+        slots: [{ slot: 'dia', shiftCount: 1, tickets: 0, hours: 0, ticketsPerHour: null }],
+      }),
+    ],
+    slots: [],
+    shiftAlerts: [
+      {
+        turno: 101,
+        branchCode: 1,
+        branchName: 'Almirante',
+        cashierKey: 'carla',
+        cashierName: 'Carla',
+        startedAt: '2026-10-21T16:00:00',
+        slot: 'noche',
+        difference: -6000,
+        turEfectivo: 157480.31,
+        percentOfCash: 3.81,
+        kind: 'faltante',
+        message:
+          'La diferencia de caja del turno fue -$ 6.000,00 (3,81 % del efectivo). Conviene revisar el arqueo de ese turno.',
+      },
+    ],
+    lowCashSignals: [
+      {
+        branchCode: 1,
+        branchName: 'Almirante',
+        slot: 'dia',
+        cashierKey: 'ana',
+        cashierName: 'Ana',
+        shiftCount: 1,
+        cashierShare: 30,
+        peersShare: 42.5,
+        gapPoints: 12.5,
+        message:
+          'En Almirante (Día), Ana cobró en efectivo el 30,00 % de sus ventas (1 turno); el resto de los cajeros de ese horario, el 42,50 % (12,50 puntos más). Conviene revisar cómo se registraron los cobros de esos turnos.',
+      },
+    ],
+    ...overrides,
+  };
+}
+
+export const emptyCashControl = (): CashControl =>
+  cashControl({
+    summary: {
+      shiftCount: 0,
+      tickets: 0,
+      venta: 0,
+      turEfectivo: 0,
+      ventaClubGrido: 0,
+      cashShare: null,
+      clubShare: null,
+      difference: noDifference,
+      averageTicket: null,
+      hours: 0,
+      ticketsPerHour: null,
+    },
+    cashiers: [],
+    shiftAlerts: [],
+    lowCashSignals: [],
+  });
+
 export function view(overrides: Partial<AnalysisView> = {}): AnalysisView {
   const id = overrides.id ?? 'branch-1';
   return {
@@ -112,6 +244,7 @@ export function view(overrides: Partial<AnalysisView> = {}): AnalysisView {
     ranking: [carla, ana, luis, marta],
     podium: podium(),
     observations,
+    cashControl: cashControl(),
     ...overrides,
   };
 }
@@ -134,6 +267,7 @@ export const emptyView = (overrides: Partial<AnalysisView> = {}): AnalysisView =
       { position: 3, status: 'vacant', cashiers: [] },
     ]),
     observations: [],
+    cashControl: emptyCashControl(),
     ...overrides,
   });
 
@@ -170,6 +304,11 @@ export function importResult(overrides: Partial<ImportResult> = {}): ImportResul
         rechazadas: 20,
         aceptadas: 7,
         activadas: 27,
+        venta: 120000,
+        turEfectivo: 48000,
+        ventaClubGrido: 70000,
+        turDiferencia: 0,
+        slot: 'dia',
       },
     ],
     warnings: [],

@@ -3,11 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
   analysisResponseSchema,
   analysisViewSchema,
+  cashControlSchema,
+  CashDifferenceKind,
   EligibilityReasonCode,
   ImportWarningCode,
   normalizedShiftSchema,
   ObservationRule,
   PodiumStepStatus,
+  ShiftSlot,
   wallClockDateTimeSchema,
 } from './analysis.js';
 import { ErrorCode } from './http-error.js';
@@ -26,6 +29,11 @@ const shift = {
   rechazadas: 20,
   aceptadas: 10,
   activadas: 30,
+  venta: 132600.01,
+  turEfectivo: 52300.5,
+  ventaClubGrido: 80000,
+  turDiferencia: -1530,
+  slot: ShiftSlot.Day,
 };
 
 const response = {
@@ -111,6 +119,96 @@ const view = {
       recommendation: 'Revisar los motivos de no elegibilidad en el ranking.',
     },
   ],
+  cashControl: {
+    summary: {
+      shiftCount: 2,
+      tickets: 50,
+      venta: 132600.01,
+      turEfectivo: 52300.5,
+      ventaClubGrido: 80000,
+      cashShare: 39.44,
+      clubShare: 60.33,
+      difference: {
+        net: -1530,
+        faltante: -1530,
+        sobrante: 0,
+        shiftsWithDifference: 1,
+        alertedShifts: 1,
+      },
+      averageTicket: 2652,
+      hours: 7.5,
+      ticketsPerHour: 6.67,
+    },
+    cashiers: [
+      {
+        cashierKey: 'ana',
+        cashierName: 'Ana',
+        branchCodes: [1],
+        shiftCount: 1,
+        tickets: 40,
+        venta: 132600.01,
+        turEfectivo: 52300.5,
+        ventaClubGrido: 80000,
+        cashShare: 39.44,
+        clubShare: 60.33,
+        difference: {
+          net: -1530,
+          faltante: -1530,
+          sobrante: 0,
+          shiftsWithDifference: 1,
+          alertedShifts: 1,
+        },
+        averageTicket: 3315,
+        hours: 7.5,
+        ticketsPerHour: 5.33,
+        slots: [
+          { slot: ShiftSlot.Day, shiftCount: 1, tickets: 40, hours: 7.5, ticketsPerHour: 5.33 },
+        ],
+      },
+    ],
+    slots: [
+      {
+        slot: ShiftSlot.Day,
+        shiftCount: 2,
+        tickets: 50,
+        venta: 132600.01,
+        turEfectivo: 52300.5,
+        cashShare: 39.44,
+        hours: 7.5,
+        ticketsPerHour: 6.67,
+      },
+    ],
+    shiftAlerts: [
+      {
+        turno: 101,
+        branchCode: 1,
+        branchName: 'Almirante',
+        cashierKey: 'ana',
+        cashierName: 'Ana',
+        startedAt: '2026-10-19T13:38:00',
+        slot: ShiftSlot.Day,
+        difference: -1530,
+        turEfectivo: 52300.5,
+        percentOfCash: 2.93,
+        kind: CashDifferenceKind.Faltante,
+        message: 'La diferencia de caja del turno fue -$ 1.530,00 (2,93 % del efectivo).',
+      },
+    ],
+    lowCashSignals: [
+      {
+        branchCode: 1,
+        branchName: 'Almirante',
+        slot: ShiftSlot.Day,
+        cashierKey: 'ana',
+        cashierName: 'Ana',
+        shiftCount: 1,
+        cashierShare: 30,
+        peersShare: 42.5,
+        gapPoints: 12.5,
+        message: 'En Almirante (Día), el efectivo de Ana fue 30,00 % de sus ventas.',
+      },
+    ],
+  },
 };
 
 describe('wallClockDateTimeSchema', () => {
@@ -218,6 +316,57 @@ describe('analysisViewSchema', () => {
     expect(analysisViewSchema.safeParse({ ...view, summary }).success).toBe(true);
     const negative = { ...view.summary, effectiveness: -1 };
     expect(analysisViewSchema.safeParse({ ...view, summary: negative }).success).toBe(false);
+  });
+});
+
+describe('normalizedShiftSchema: money and slot', () => {
+  it('requires the money fields and the slot', () => {
+    for (const key of ['venta', 'turEfectivo', 'ventaClubGrido', 'turDiferencia', 'slot']) {
+      const { [key as keyof typeof shift]: _omitted, ...rest } = shift;
+      expect(normalizedShiftSchema.safeParse(rest).success).toBe(false);
+    }
+  });
+
+  it('accepts a negative difference but no negative sales or cash', () => {
+    expect(normalizedShiftSchema.safeParse({ ...shift, turDiferencia: 1600 }).success).toBe(true);
+    expect(normalizedShiftSchema.safeParse({ ...shift, venta: -1 }).success).toBe(false);
+    expect(normalizedShiftSchema.safeParse({ ...shift, turEfectivo: -0.01 }).success).toBe(false);
+    expect(normalizedShiftSchema.safeParse({ ...shift, ventaClubGrido: -5 }).success).toBe(false);
+  });
+
+  it('rejects an unknown slot', () => {
+    expect(normalizedShiftSchema.safeParse({ ...shift, slot: 'tarde' }).success).toBe(false);
+  });
+});
+
+describe('cashControlSchema', () => {
+  it('accepts the cash control section of a view', () => {
+    expect(cashControlSchema.parse(view.cashControl)).toEqual(view.cashControl);
+  });
+
+  it('accepts not calculable indicators as null', () => {
+    const summary = {
+      ...view.cashControl.summary,
+      cashShare: null,
+      clubShare: null,
+      averageTicket: null,
+      ticketsPerHour: null,
+    };
+    const alert = { ...view.cashControl.shiftAlerts[0], turEfectivo: 0, percentOfCash: null };
+    const body = { ...view.cashControl, summary, shiftAlerts: [alert] };
+    expect(cashControlSchema.safeParse(body).success).toBe(true);
+  });
+
+  it('rejects an unknown difference kind', () => {
+    const alert = { ...view.cashControl.shiftAlerts[0], kind: 'robo' };
+    expect(cashControlSchema.safeParse({ ...view.cashControl, shiftAlerts: [alert] }).success).toBe(
+      false,
+    );
+  });
+
+  it('is required on every view', () => {
+    const { cashControl: _omitted, ...rest } = view;
+    expect(analysisViewSchema.safeParse(rest).success).toBe(false);
   });
 });
 

@@ -2,7 +2,15 @@ import ExcelJS from 'exceljs';
 import { describe, expect, it } from 'vitest';
 
 import { sampleMeta, sampleView } from '../test-utils/fixtures.js';
-import { renderReportWorkbook } from './build-report-workbook.js';
+import { MONEY_FORMAT, renderReportWorkbook } from './build-report-workbook.js';
+
+/** First row whose column A holds `text`. */
+function findRow(ws: ExcelJS.Worksheet, text: string): number {
+  for (let row = 1; row <= ws.rowCount; row += 1) {
+    if (ws.getCell(row, 1).value === text) return row;
+  }
+  throw new Error(`Missing row ${text}`);
+}
 
 async function load(id: string): Promise<ExcelJS.Workbook> {
   const buffer = await renderReportWorkbook(sampleView(id), sampleMeta);
@@ -30,7 +38,7 @@ function resumenValue(ws: ExcelJS.Worksheet, label: string): ExcelJS.Cell {
 }
 
 describe('renderReportWorkbook', () => {
-  it('produces the four sheets in order', async () => {
+  it('produces the five sheets in order', async () => {
     const workbook = await load('branch-1');
 
     expect(workbook.worksheets.map((ws) => ws.name)).toEqual([
@@ -38,6 +46,7 @@ describe('renderReportWorkbook', () => {
       'Ranking',
       'Podio',
       'Observaciones',
+      'Control de caja',
     ]);
   });
 
@@ -57,6 +66,22 @@ describe('renderReportWorkbook', () => {
     const effectiveness = resumenValue(ws, 'Efectividad general');
     expect(effectiveness.value).toBeCloseTo(41 / 419, 12);
     expect(effectiveness.numFmt).toBe('0.00%');
+  });
+
+  it('adds the cash control totals to the summary', async () => {
+    const ws = sheet(await load('branch-1'), 'Resumen');
+
+    expect(resumenValue(ws, 'Ventas').value).toBe(40000);
+    expect(resumenValue(ws, 'Ventas').numFmt).toBe(MONEY_FORMAT);
+    expect(resumenValue(ws, '% efectivo').value).toBeCloseTo(0.35, 12);
+    expect(resumenValue(ws, '% efectivo').numFmt).toBe('0.00%');
+    expect(resumenValue(ws, '% Club Grido').value).toBeCloseTo(0.6, 12);
+    expect(resumenValue(ws, 'Diferencia de caja').value).toBe(-100);
+    expect(resumenValue(ws, 'Diferencia de caja').numFmt).toBe(MONEY_FORMAT);
+    expect(resumenValue(ws, 'Faltante').value).toBe(-100);
+    expect(resumenValue(ws, 'Sobrante').value).toBe(0);
+    expect(resumenValue(ws, 'Turnos a revisar').value).toBe(1);
+    expect(resumenValue(ws, 'Ticket promedio').value).toBeCloseTo(40000 / 469, 10);
   });
 
   it('lists the ranking with a bold frozen header, autofilter and reasons', async () => {
@@ -145,5 +170,62 @@ describe('renderReportWorkbook', () => {
       first?.interpretation,
       first?.recommendation,
     ]);
+  });
+
+  it('lists the cash indicators per cashier with numbers stored as numbers', async () => {
+    const ws = sheet(await load('branch-1'), 'Control de caja');
+
+    expect(rowValues(ws, 1).slice(0, 7)).toEqual([
+      'Cajero',
+      'Sucursales',
+      'Turnos',
+      'Tickets',
+      'Ventas',
+      'Efectivo',
+      '% efectivo',
+    ]);
+    const bruno = findRow(ws, 'Bruno');
+    expect(ws.getCell(bruno, 5).value).toBe(10000);
+    expect(ws.getCell(bruno, 5).numFmt).toBe(MONEY_FORMAT);
+    expect(ws.getCell(bruno, 7).value).toBeCloseTo(0.2, 12);
+    expect(ws.getCell(bruno, 7).numFmt).toBe('0.00%');
+    const ana = findRow(ws, 'Ana');
+    expect(ws.getCell(ana, 10).value).toBe(-100);
+    expect(ws.getCell(ana, 14).value).toBe(1);
+  });
+
+  it('lists the alerted shifts and the low-cash signals with the limitation note', async () => {
+    const ws = sheet(await load('branch-1'), 'Control de caja');
+
+    const alerts = findRow(ws, 'Diferencias de caja para revisar');
+    expect(rowValues(ws, alerts + 1).slice(0, 4)).toEqual([
+      'Fecha',
+      'Horario',
+      'Sucursal',
+      'Cajero',
+    ]);
+    const alert = rowValues(ws, alerts + 2);
+    expect(alert.slice(0, 4)).toEqual(['21/10/2026', 'Día', 'Almirante', 'Ana']);
+    expect(ws.getCell(alerts + 2, 6).value).toBe(-100);
+    expect(ws.getCell(alerts + 2, 6).numFmt).toBe(MONEY_FORMAT);
+    expect(ws.getCell(alerts + 2, 8).value).toBeCloseTo(0.025, 12);
+
+    const signals = findRow(ws, 'Efectivo bajo frente al resto del horario');
+    const signal = rowValues(ws, signals + 2);
+    expect(signal.slice(0, 4)).toEqual(['Almirante', 'Día', 'Bruno', 1]);
+    expect(ws.getCell(signals + 2, 5).value).toBeCloseTo(0.2, 12);
+    expect(ws.getCell(signals + 2, 6).value).toBeCloseTo(0.4, 12);
+
+    findRow(
+      ws,
+      'Estos datos solo incluyen ventas tickeadas; las señales indican qué revisar, no prueban irregularidades.',
+    );
+  });
+
+  it('says there are no signals when a block is empty', async () => {
+    const ws = sheet(await load('branch-2'), 'Control de caja');
+
+    const signals = findRow(ws, 'Efectivo bajo frente al resto del horario');
+    expect(ws.getCell(signals + 1, 1).value).toBe('Sin señales esta semana');
   });
 });

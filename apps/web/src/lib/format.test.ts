@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   formatDate,
+  formatDayMonth,
+  formatDecimal,
+  formatMoney,
+  formatSignedMoney,
   formatInteger,
   formatOrdinal,
   formatPercent,
@@ -53,5 +57,38 @@ describe('formatOrdinal', () => {
   it('formats a podium position as an ordinal', () => {
     expect(formatOrdinal(1)).toBe('1.º');
     expect(formatOrdinal(2)).toBe('2.º');
+  });
+});
+
+describe('formatMoney', () => {
+  it('formats pesos as es-AR currency with cents', () => {
+    expect(formatMoney(1234.56)).toBe('$\u00a01.234,56');
+    expect(formatMoney(0)).toBe('$\u00a00,00');
+    expect(formatMoney(-8930.81)).toBe('-$\u00a08.930,81');
+  });
+
+  it('shows "No calculable" for null', () => {
+    expect(formatMoney(null)).toBe('No calculable');
+  });
+});
+
+describe('formatSignedMoney', () => {
+  it('always shows the sign of a non-zero amount', () => {
+    expect(formatSignedMoney(2619.76)).toBe('+$\u00a02.619,76');
+    expect(formatSignedMoney(-6000)).toBe('-$\u00a06.000,00');
+    expect(formatSignedMoney(0)).toBe('$\u00a00,00');
+  });
+});
+
+describe('formatDecimal', () => {
+  it('formats with two decimals; null is "No calculable"', () => {
+    expect(formatDecimal(12.3456)).toBe('12,35');
+    expect(formatDecimal(null)).toBe('No calculable');
+  });
+});
+
+describe('formatDayMonth', () => {
+  it('slices dd/mm from a wall-clock string', () => {
+    expect(formatDayMonth('2026-10-19T13:38:00')).toBe('19/10');
   });
 });

@@ -110,6 +110,21 @@ describe('readShiftRows', () => {
     expect(error.message).toContain('turno, sv_aceptada');
   });
 
+  it('requires the money columns used by cash control', async () => {
+    const headers = SHIFT_HEADERS.filter(
+      (h) => !['venta', 'turefectivo', 'turdiferencia', 'ventaclubgrido'].includes(h),
+    );
+
+    const error = await rejection(
+      readShiftRows(await buildWorkbook({ headers, rows: [shiftRow()] })),
+    );
+
+    expect(error.code).toBe(ErrorCode.MissingColumns);
+    expect(error.details).toEqual({
+      missing: ['venta', 'turefectivo', 'turdiferencia', 'ventaclubgrido'],
+    });
+  });
+
   it('rejects an empty worksheet', async () => {
     const error = await rejection(readShiftRows(await buildWorkbook({ headers: [] })));
 
