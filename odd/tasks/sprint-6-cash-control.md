@@ -46,7 +46,7 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 ## Tasks
 
 - [x] T1 Shared contract (normalized shift money fields + slot; view `cashControl`).
-- [ ] T2 Import: required money columns, money parsing, validation.
+- [x] T2 Import: required money columns, money parsing, validation.
 - [ ] T3 `analysis/cash-control.ts`: indicators, shift alerts, low-cash signals; wired into `analyzeImport`.
 - [ ] T4 Web: summary cards + `CashControl` section.
 - [ ] T5 Exports: Excel sheet `Control de caja` + PDF section.
@@ -60,8 +60,10 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 
 - Feature doc created from the approved plan (2026-11-02). Engram mirror `odd/sprint-6-cash-control/tasks`: PENDING (host session registration failing in this session).
 
-- T1 (delegated writer): RED — `packages/shared` vitest: `analysis.test.ts` failed to load (`ShiftSlot` undefined) with the new contract tests. GREEN — 53/53 shared tests, `tsc --noEmit` OK. Field names use camelCase (`turEfectivo` for `turefectivo`). API/web typecheck is expected to fail until T2–T4 fill the new required fields. Commit: see T2 entry.
+- T1 (delegated writer): RED — `packages/shared` vitest: `analysis.test.ts` failed to load (`ShiftSlot` undefined) with the new contract tests. GREEN — 53/53 shared tests, `tsc --noEmit` OK. Field names use camelCase (`turEfectivo` for `turefectivo`). API/web typecheck is expected to fail until T2–T4 fill the new required fields. Commit `3bdc73b`.
+
+- T2 (delegated writer): RED — 30 new import tests failed (`parseMoney`/`parseNonNegativeMoney` missing, no money fields or slot on shifts, money columns not required). GREEN — `src/import` + router suites: 88 passed; the 3 router 200-response tests stay red until T3 adds `cashControl` (response schema requires it). Money is rounded to cents at parse (`toPrecision(15)` guards binary artifacts); text amounts accepted only as plain dot decimals. Commit: see T3 entry.
 
 ## Next step
 
-- Implement T2.
+- Implement T3.

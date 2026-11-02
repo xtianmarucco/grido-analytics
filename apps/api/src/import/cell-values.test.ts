@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseWallClock } from './cell-values.js';
+import { parseMoney, parseNonNegativeMoney, parseWallClock } from './cell-values.js';
 
 describe('parseWallClock', () => {
   it('reads a Date as wall-clock time rounded to the second', () => {
@@ -23,5 +23,41 @@ describe('parseWallClock', () => {
 
   it('rejects a serial outside the supported years', () => {
     expect(parseWallClock(1e7)).toBeUndefined();
+  });
+});
+
+describe('parseMoney', () => {
+  it.each<[unknown, number]>([
+    [132600.01, 132600.01],
+    [-1530, -1530],
+    [0, 0],
+    ['  250.5 ', 250.5],
+    ['-12', -12],
+    [0.1 + 0.2, 0.3],
+    [10.005, 10.01],
+  ])('reads %s as %s (rounded to cents)', (cell, expected) => {
+    expect(parseMoney(cell as never)).toBe(expected);
+  });
+
+  it.each([null, '', 'abc', '1.234,56', '$ 10', true, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects %s',
+    (cell) => {
+      expect(parseMoney(cell as never)).toBeUndefined();
+    },
+  );
+
+  it('rejects a Date', () => {
+    expect(parseMoney(new Date('2026-10-19T00:00:00Z'))).toBeUndefined();
+  });
+});
+
+describe('parseNonNegativeMoney', () => {
+  it('accepts zero and positive amounts', () => {
+    expect(parseNonNegativeMoney(0)).toBe(0);
+    expect(parseNonNegativeMoney(99.99)).toBe(99.99);
+  });
+
+  it('rejects negative amounts', () => {
+    expect(parseNonNegativeMoney(-0.01)).toBeUndefined();
   });
 });

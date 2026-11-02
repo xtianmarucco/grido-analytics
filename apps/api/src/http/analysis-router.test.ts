@@ -204,6 +204,16 @@ describe('POST /api/analysis: workbook rejections', () => {
     expect(error.message).toContain('sv_aceptada');
   });
 
+  it('422 MISSING_COLUMNS when a cash control column is missing', async () => {
+    const headers = SHIFT_HEADERS.filter((h) => h !== 'turdiferencia');
+    const buffer = await buildWorkbook({ headers, rows: [shiftRow()] });
+
+    const response = await upload(buffer);
+
+    const error = expectError(response, 422, ErrorCode.MissingColumns);
+    expect(error.details).toEqual({ missing: ['turdiferencia'] });
+  });
+
   it('422 UNREADABLE_FILE for a corrupt ZIP', async () => {
     const corrupt = Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(200, 7)]);
 
