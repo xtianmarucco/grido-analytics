@@ -15,6 +15,15 @@ describe('parseConfig', () => {
     });
   });
 
+  it('reads WEB_DIST_DIR when it is set', () => {
+    expect(parseConfig({ WEB_DIST_DIR: '/opt/grido/web' }).webDistDir).toBe('/opt/grido/web');
+  });
+
+  it('treats an empty or blank WEB_DIST_DIR as unset', () => {
+    expect(parseConfig({ WEB_DIST_DIR: '' }).webDistDir).toBeUndefined();
+    expect(parseConfig({ WEB_DIST_DIR: '   ' }).webDistDir).toBeUndefined();
+  });
+
   it('rejects a port that is not a valid TCP port', () => {
     expect(() => parseConfig({ PORT: 'abc' })).toThrow();
     expect(() => parseConfig({ PORT: '70000' })).toThrow();

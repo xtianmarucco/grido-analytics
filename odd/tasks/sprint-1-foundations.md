@@ -45,6 +45,7 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - [x] T4 `apps/web`: Vite + React + Tailwind v4 + shadcn/ui + @fontsource + TanStack Query health status with connected/error states. (commit 91f32c8)
 - [x] T5 Production mode: Express serves `apps/web/dist` with SPA fallback; `pnpm start` builds and runs one process. (commit 211e7b2)
 - [x] T6 Docs: `/docs` set listed in scope + README with Sprint 0 approved rules. (commit ffe1025)
+- [x] T7 Review follow-up R3-empty-web-dist-dir: empty/blank `WEB_DIST_DIR` is treated as unset (parsed in `parseConfig`) instead of resolving to cwd.
 
 ## Routing
 
@@ -71,6 +72,8 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - Advisory follow-ups (non-blocking): R3-empty-web-dist-dir (WARNING, `apps/api/src/server.ts:12`: empty `WEB_DIST_DIR` resolves to cwd); R3-composition-root-untested (`server.ts:11-17`); R3-spa-fallback-edges-untested (`static-web.ts:30-41`); R3-non-json-4xx-as-network (`apps/web/src/lib/api.ts:39-49`).
 - Open: pnpm 11 added `minimumReleaseAgeExclude` entries (globals, @tanstack/*) in `pnpm-workspace.yaml`; user decision pending.
 
+- T7 (inline, one mechanical fix + test): RED: `vitest run src/config.test.ts` → 1 failed (WEB_DIST_DIR not read). GREEN: api 17/17; `pnpm typecheck|lint|format:check|test|build` ok. Smoke: `WEB_DIST_DIR= node dist/server.js` serves the web build from apps/web/dist.
+
 ## Next step
 
-- Decide on advisory follow-up T7 (WARNING fix), release-age exclusions, and PR chain strategy (~1.5k authored lines > ~400).
+- Decide release-age exclusions and PR chain strategy (~1.5k authored lines > ~400).

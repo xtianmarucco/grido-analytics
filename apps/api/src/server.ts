@@ -9,7 +9,7 @@ const config = parseConfig(process.env);
 
 // Both `src/server.ts` (dev) and `dist/server.js` (prod) sit two levels below `apps/`.
 const defaultWebDistDir = fileURLToPath(new URL('../../web/dist', import.meta.url));
-const webDistDir = path.resolve(process.env.WEB_DIST_DIR ?? defaultWebDistDir);
+const webDistDir = path.resolve(config.webDistDir ?? defaultWebDistDir);
 // Production mode = a web build exists (`pnpm start` always builds first). No env var needed,
 // so it works the same on Windows and macOS.
 const servesWeb = existsSync(path.join(webDistDir, 'index.html'));
