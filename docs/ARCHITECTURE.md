@@ -20,14 +20,14 @@ Dev:  Browser ──► 127.0.0.1:5173 (Vite) ──/api proxy──► 127.0.0.
 
 ## `apps/api/src`
 
-| Folder      | Contents                                                                             | Exists since |
-| ----------- | ------------------------------------------------------------------------------------ | ------------ |
-| `http/`     | `createApp`, routers, error envelope, static web serving                             | Sprint 1     |
-| `config.ts` | Env parsing (`HOST`, `PORT`, `NODE_ENV`)                                             | Sprint 1     |
-| `server.ts` | Composition root: config, web build detection, `listen`                              | Sprint 1     |
-| `import/`   | Excel reading (exceljs), row validation and normalization → shifts + warnings. Pure. | Sprint 2     |
-| `analysis/` | Pure business functions: views, totals, ranking, podium, observations. No Express.   | Sprint 3     |
-| `export/`   | PDF (pdfmake) and Excel (exceljs) generation                                         | Sprint 5     |
+| Folder      | Contents                                                                              | Exists since |
+| ----------- | ------------------------------------------------------------------------------------- | ------------ |
+| `http/`     | `createApp`, routers, error envelope, static web serving                              | Sprint 1     |
+| `config.ts` | Env parsing (`HOST`, `PORT`, `NODE_ENV`)                                              | Sprint 1     |
+| `server.ts` | Composition root: config, web build detection, `listen`                               | Sprint 1     |
+| `import/`   | Excel reading (exceljs), row validation and normalization → shifts + warnings. Pure.  | Sprint 2     |
+| `analysis/` | Pure business functions: views, totals, ranking, podium, observations. No Express.    | Sprint 3     |
+| `export/`   | Pure report builders: PDF doc definition (pdfmake) and workbook (exceljs) of one view | Sprint 5     |
 
 Folders are created when their sprint starts, not before.
 
@@ -42,6 +42,7 @@ never import from `http/` or Express; only `import/read-workbook.ts` touches exc
 | `features/health/`   | Header server indicator (container `ServerStatus` + view)                                    |
 | `features/upload/`   | Drop zone, upload mutation (keeps the selected `File`), `ImportPreview`, `WarningList`       |
 | `features/analysis/` | Dashboard (Sprint 4): view selector, summary, podium, observations, ranking, chart, imported |
+| `features/export/`   | Report downloads (Sprint 5): `ReportDownloads` container (mutation) + view                   |
 | `components/ui/`     | shadcn/ui primitives used (button, card, alert, badge, table)                                |
 | `lib/api.ts`         | Typed fetch client; validates responses with shared schemas                                  |
 | `lib/format.ts`      | `es-AR` formatting (percent, integer, date, period, ordinal); `lib/plural.ts` for counts     |
@@ -55,8 +56,9 @@ only.
 UploadAnalysis (container: selected File + upload mutation)
 ├─ UploadAnalysisView        drop zone → processing → compact "Procesado" row / error
 └─ AnalysisDashboard         (container, key = upload; state: selected view, disclosure)
-   └─ AnalysisDashboardView  warnings alert · ViewSelector + period · SummaryCards · Podium ·
-                             ObservationList · RankingTable · EffectivenessChart · ImportedData
+   └─ AnalysisDashboardView  warnings alert · ViewSelector + period · ReportDownloads (S5) ·
+                             SummaryCards · Podium · ObservationList · RankingTable ·
+                             EffectivenessChart · ImportedData
 ```
 
 - Default view `all` ("Ambas sucursales"), falling back to the first view; switching views is a

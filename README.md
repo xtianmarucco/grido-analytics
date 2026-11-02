@@ -3,8 +3,8 @@
 Local, offline app that turns the weekly Grido shift-close Excel into an upselling (SB)
 effectiveness ranking per cashier, with podium and PDF/Excel exports. No database, no login.
 
-> Sprint 4 status: upload the weekly Excel and see the dashboard per view. PDF/Excel exports
-> arrive in Sprint 5.
+> Sprint 5 status: upload the weekly Excel, see the dashboard per view and download the selected
+> view's report as PDF or Excel.
 
 ## Quick start
 
@@ -28,7 +28,11 @@ Development: `pnpm dev`, then open `http://127.0.0.1:5173`.
    never changes) and the effectiveness chart.
 4. Rows excluded from the file are listed under **Datos importados** (collapsed; a warning
    above the views links to it).
-5. **Analizar otro archivo** replaces the whole result.
+5. **Descargar PDF · {vista}** / **Descargar Excel · {vista}** (under the view selector) download
+   the report of the selected view, e.g. `grido-informe-ambas-sucursales-2026-10-19-al-2026-10-25.pdf`.
+   The file is re-sent and recomputed by the local server; nothing is stored. The PDF is A4 and
+   printable; the Excel has the sheets Resumen, Ranking, Podio and Observaciones.
+6. **Analizar otro archivo** replaces the whole result.
 
 ## Approved business rules (Sprint 0)
 

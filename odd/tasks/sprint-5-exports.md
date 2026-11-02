@@ -43,7 +43,7 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 - [x] T3 `apps/api/src/export/pdf`: pure doc definition builder + pdfmake rendering to Buffer + tests.
 - [x] T4 `apps/api/src/http`: `/api/exports/pdf` and `/api/exports/xlsx` routes, headers, errors + supertest.
 - [x] T5 `apps/web`: export buttons, states, download handling + component tests.
-- [ ] T6 Docs.
+- [x] T6 Docs.
 
 ## Routing
 
@@ -61,7 +61,9 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 - T3 (previous `9083a26`): RED both PDF test files failed (modules missing); GREEN 18/18 export tests. `pdfmake` 0.3.13 + `@types/pdfmake` 0.3.3 (dev). Node API verified in the installed package: singleton `createPdf().getBuffer()`, `virtualfs` (untyped, local interface), `setUrlAccessPolicy`/`setLocalAccessPolicy` set to deny all; Roboto loaded from `pdfmake/build/vfs_fonts.js` into the in-memory vfs. Generation date uses server local time.
 - T4 (previous `ea9f8fe`): RED 14/14 new supertest cases failed (routes 404); GREEN api suite. Shared upload/import step extracted to `http/analyze-upload.ts` (analysis router unchanged in behavior). Order: file → ZIP signature → `view` schema → import → view lookup; both view failures are 400 `INVALID_VIEW`. Headers: Content-Type, `attachment; filename="…"` (ASCII by construction), `Cache-Control: no-store`, `nosniff`.
 - T5 (previous `28c18c3`): RED 12 new web tests failed (`downloadReport`, `fileNameFromDisposition`, `saveBlob`, `ReportDownloads` missing); GREEN web 75/75. `useMutation` per dashboard; one download at a time (both buttons disabled), `role="status"` only while generating so existing single-status queries stay valid; error alert shows API message for user-facing codes. `isUserFacingError` moved to `lib/api.ts` and reused by the upload. Fallback filename from shared `reportFileName`.
+- T6 (previous `9b794d8`): docs only (API_CONTRACT implemented section + `INVALID_VIEW`, DECISIONS D-35–D-40, UI_UX_GUIDELINES state row, ARCHITECTURE, README). Structural readback; no RED (passive docs).
+- Final verification: typecheck/lint/format:check/build exit 0; tests shared 46, api 164, web 75. `pnpm audit --prod`: 2 moderate (uuid, minimatch), both via exceljs, none via pdfmake. Real file on PORT=3002: 3 views × 2 formats → 200, correct Content-Type and filenames, PDFs start `%PDF-` (2 pages each), xlsx 4 sheets, autofilter, Resumen effectiveness fraction with `0.00%`, rankings/positions/effectiveness equal to `/api/analysis`; invalid view → 400 `INVALID_VIEW`; text file → 415. Page 1 rendered to PNG (macOS `sips`) in the scratch dir only.
 
 ## Next step
 
-- Implement T6.
+- User: open the scratch PDFs/XLSX in a viewer and print one PDF on A4 (visual sign-off); then native review / PR per repository policy.
