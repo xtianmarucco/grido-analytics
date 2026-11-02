@@ -45,7 +45,7 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
 - [x] T1 Design guide: `docs/UI_UX_GUIDELINES.md`, `docs/FRONTEND_RULES.md` (stop for approval).
 - [x] T2 Theme tokens, header, view selector.
 - [x] T3 Summary cards.
-- [ ] T4 Podium.
+- [x] T4 Podium.
 - [ ] T5 Ranking table.
 - [ ] T6 Observations.
 - [ ] T7 Effectiveness chart.
@@ -75,8 +75,9 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
   page header keeps title, subtitle and server status; the period sits next to the view selector
   (guide wireframe). RED: 5 failing tests + 2 missing modules; GREEN: 31/31 web tests.
 - T3 (previous commit `4ca022d`): `SummaryCards` — six cards (Período, Tickets, Sobreventas activadas, Sobreventas aceptadas, Efectividad general with "N aceptadas de M activadas", Cajeros with "N turnos"), 2/3/6-column grid, muted "No calculable"; `plural` moved to `lib/` and formats counts with `es-AR` grouping. RED: missing module; GREEN: 35/35 web tests.
+- T4 (previous commit `6dedc40`): `Podium` — API steps in DOM order 1, 2, 3 (`<ol>`), visual 2 – 1 – 3 with CSS `order` from `md`, stacked on phone; filled (metal fill, medal, name, effectiveness, "N aceptadas de M activadas"), tie (all names, "Empate" badge, shared text), covered-by-tie (names the nearest filled step above), vacant (explanation), requirements caption. RED: missing module; GREEN: 4/4 podium tests, full web suite green.
 - Engram mirror `odd/sprint-4-dashboard/tasks`: PENDING (host session registration failing in this session).
 
 ## Next step
 
-- T4 podium.
+- T5 ranking table.

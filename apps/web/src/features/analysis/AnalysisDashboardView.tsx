@@ -2,6 +2,7 @@ import type { AnalysisView, ImportResult } from '@grido/shared';
 
 import { formatPeriod } from '@/lib/format';
 
+import { Podium } from './Podium';
 import { SummaryCards } from './SummaryCards';
 import { ViewSelector } from './ViewSelector';
 
@@ -29,6 +30,7 @@ export function AnalysisDashboardView({ view, views, onSelectView }: AnalysisDas
         </p>
       </div>
       <SummaryCards summary={view.summary} />
+      <Podium steps={view.podium} />
       <p aria-live="polite" className="sr-only">
         {`Mostrando ${view.label}`}
       </p>
