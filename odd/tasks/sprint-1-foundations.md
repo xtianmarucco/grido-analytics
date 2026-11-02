@@ -75,6 +75,12 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 
 - T7 (inline, one mechanical fix + test): RED: `vitest run src/config.test.ts` → 1 failed (WEB_DIST_DIR not read). GREEN: api 17/17; `pnpm typecheck|lint|format:check|test|build` ok. Smoke: `WEB_DIST_DIR= node dist/server.js` serves the web build from apps/web/dist.
 
+- Sprint 1 closed by the user on 2026-11-02. Delivery: user requested a single push of `feat/sprint-1-foundations`; PR is opened by the user on GitHub.
+
+## Status
+
+Closed.
+
 ## Next step
 
-- Manual app test by the user; then PR chain strategy (~1.5k authored lines > ~400).
+- Sprint 2 (Excel import) planning.
