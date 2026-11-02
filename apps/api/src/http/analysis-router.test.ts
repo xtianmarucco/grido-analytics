@@ -50,6 +50,57 @@ describe('POST /api/analysis: accepted files', () => {
     expect(body.import.warnings).toEqual([]);
   });
 
+  it('adds the analysis views next to the import section', async () => {
+    const buffer = await buildWorkbook({
+      rows: [
+        shiftRow({
+          usulogin: 'ana',
+          totaltiquets: 40,
+          sv_noactivada: 10,
+          sv_rechazada: 20,
+          sv_aceptada: 10,
+        }),
+        shiftRow({
+          usulogin: 'Dario',
+          totaltiquets: 20,
+          sv_noactivada: 0,
+          sv_rechazada: 20,
+          sv_aceptada: 0,
+        }),
+        shiftRow({
+          usulogin: 'dario ',
+          succodigo: 'Barranquer',
+          sucursal: 2,
+          totaltiquets: 20,
+          sv_noactivada: 0,
+          sv_rechazada: 15,
+          sv_aceptada: 5,
+        }),
+      ],
+    });
+
+    const response = await upload(buffer);
+
+    expect(response.status).toBe(200);
+    const body = analysisResponseSchema.parse(response.body);
+    expect(body.views.map((v) => [v.id, v.label, v.summary.cashierCount])).toEqual([
+      ['branch-1', 'Almirante', 2],
+      ['branch-2', 'Barranqueras', 1],
+      ['all', 'Ambas sucursales', 2],
+    ]);
+    const combined = body.views[2];
+    expect(
+      combined?.ranking.map((e) => [e.cashierName, e.branchCodes, e.tickets, e.effectiveness]),
+    ).toEqual([
+      ['Ana', [1], 40, (10 / 30) * 100],
+      ['Dario', [1, 2], 40, (5 / 40) * 100],
+    ]);
+    expect(combined?.podium.map((s) => s.status)).toEqual(['filled', 'filled', 'vacant']);
+    expect(body.views[1]?.ranking[0]?.ineligibilityReasons.map((r) => r.code)).toEqual([
+      'MIN_TICKETS',
+    ]);
+  });
+
   it('processes the remaining rows and reports invalid rows and duplicates as warnings', async () => {
     const duplicated = shiftRow({ turno: 40 });
     const buffer = await buildWorkbook({

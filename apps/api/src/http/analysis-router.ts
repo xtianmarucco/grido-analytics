@@ -1,6 +1,7 @@
 import { type AnalysisResponse, ErrorCode, type ImportResult } from '@grido/shared';
 import { Router } from 'express';
 
+import { analyzeImport } from '../analysis/analyze.js';
 import { ImportError, type ImportErrorCode } from '../import/errors.js';
 import { importShiftWorkbook } from '../import/import-shift-workbook.js';
 import { HttpError } from './errors.js';
@@ -16,7 +17,7 @@ const IMPORT_ERROR_STATUS: Record<ImportErrorCode, number> = {
   [ErrorCode.NoValidRows]: 422,
 };
 
-/** `POST /api/analysis`: adapts the multipart upload to the import (and, from Sprint 3, analysis). */
+/** `POST /api/analysis`: adapts the multipart upload to the import, then the analysis. */
 export function createAnalysisRouter(): Router {
   const router = Router();
 
@@ -45,8 +46,7 @@ export function createAnalysisRouter(): Router {
       throw error;
     }
 
-    // Sprint 3 T6 replaces the empty views with the analysis.
-    const body: AnalysisResponse = { import: result, views: [] };
+    const body: AnalysisResponse = { import: result, views: analyzeImport(result) };
     res.json(body);
   });
 
