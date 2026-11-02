@@ -64,6 +64,10 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 - T6 (previous `9b794d8`): docs only (API_CONTRACT implemented section + `INVALID_VIEW`, DECISIONS D-35–D-40, UI_UX_GUIDELINES state row, ARCHITECTURE, README). Structural readback; no RED (passive docs).
 - Final verification: typecheck/lint/format:check/build exit 0; tests shared 46, api 164, web 75. `pnpm audit --prod`: 2 moderate (uuid, minimatch), both via exceljs, none via pdfmake. Real file on PORT=3002: 3 views × 2 formats → 200, correct Content-Type and filenames, PDFs start `%PDF-` (2 pages each), xlsx 4 sheets, autofilter, Resumen effectiveness fraction with `0.00%`, rankings/positions/effectiveness equal to `/api/analysis`; invalid view → 400 `INVALID_VIEW`; text file → 415. Page 1 rendered to PNG (macOS `sips`) in the scratch dir only.
 
+- Parent spot check: page 1 of the real-file PDF (`all` view) reviewed — heading, period, summary, podium with guide colors, observations, footer "Página 1 de 2".
+- Native review (2026-11-02): medium (`configuration_change` apps/api/package.json), review_due slice_budget_reached (2459 lines over 63526a5..HEAD). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-73b7d5d342a1423b).
+- Advisory follow-ups (non-blocking): R3-revoke-before-download (WARNING, `apps/web/src/lib/download.ts:9-14`: object URL revoked synchronously after click, may break downloads in Firefox/Safari silently); R3-stale-mutation-state-across-views (WARNING, `apps/web/src/features/export/ReportDownloads.tsx:23-43`: one mutation across view switches — stale error alert and wrong view label while pending); R3-test-global-leak (`ReportDownloads.test.tsx:22-28`, `download.test.ts`: URL mutated in place, click spy not restored).
+
 ## Next step
 
 - User: open the scratch PDFs/XLSX in a viewer and print one PDF on A4 (visual sign-off); then native review / PR per repository policy.
