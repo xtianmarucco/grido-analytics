@@ -50,9 +50,10 @@ export function parseWallClock(cell: RawCell): WallClockDateTime | undefined {
   } else {
     return undefined;
   }
-  const rounded = Math.round(millis / 1000) * 1000;
-  const date = new Date(rounded);
+  const date = new Date(Math.round(millis / 1000) * 1000);
+  // A finite serial can still exceed the Date range; `toISOString()` would throw on it.
+  if (Number.isNaN(date.getTime())) return undefined;
   const year = date.getUTCFullYear();
-  if (Number.isNaN(rounded) || year < 1900 || year > 9999) return undefined;
+  if (year < 1900 || year > 9999) return undefined;
   return date.toISOString().slice(0, 19);
 }

@@ -52,6 +52,7 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 - [x] T4 `apps/api/src/http`: multer upload, limits, signature check, `POST /api/analysis`, error mapping.
 - [x] T5 `apps/web/src/features/upload`: upload UI, states, preview table, warnings, replace file.
 - [x] T6 Docs update.
+- [x] T7 Review follow-up R3-wallclock-invalid-date-throws: out-of-range numeric date serials are rejected as invalid values instead of throwing.
 
 ## Routing
 
@@ -78,6 +79,8 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 - Parent spot check: fresh server on :3002 with the real file → 28 shifts, Almirante 14 / Barranqueras 14, period 2026-10-19..2026-10-25, 0 warnings, summary 28/28/0.
 - Native review (2026-11-02): assessed medium (`configuration_change` apps/api/package.json), review_due slice_budget_reached (4403 lines over 270cfd6..HEAD). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-69e24456b984851b).
 - Advisory follow-ups (non-blocking): R3-wallclock-invalid-date-throws (WARNING, `apps/api/src/import/cell-values.ts:53-57`: out-of-range numeric date serial yields Invalid Date not caught); R3-period-check-ignores-row-validity (`normalize-shifts.ts:62-68`); R3-http-mapping-untested (`analysis-router.ts:9-17`: FILE_TOO_LARGE from ZIP guard and TOO_MANY_ROWS lack supertest coverage).
+
+- T7 (inline, one mechanical fix + unit tests): actual impact was worse than reported — `toISOString()` threw `RangeError: Invalid time value`, so the whole upload would fail with 500. RED: `vitest run src/import/cell-values.test.ts` → 1 failed (RangeError). GREEN: api 76/76; `pnpm typecheck|lint|format:check|test|build` ok. E2E: 2-row fictitious file with `turiniciaturno = 1e15` → HTTP 200, 1 included, 1 excluded with INVALID_VALUE warning (row 3).
 
 ## Next step
 
