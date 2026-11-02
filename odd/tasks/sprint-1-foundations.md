@@ -70,10 +70,11 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - Native review (2026-11-02): assessed medium (`configuration_change` .env.example), `review_due: slice_budget_reached` over 4e0de7f..6357b0b. Consent granted. Lens: review-reliability. Outcome: approved, acknowledged, authority burned (lineage review-893fdce0403195e8). Reviewed boundary advances to 6357b0b.
 - Parent spot check: `pnpm test` → shared 7/7, api 15/15, web 8/8 passed.
 - Advisory follow-ups (non-blocking): R3-empty-web-dist-dir (WARNING, `apps/api/src/server.ts:12`: empty `WEB_DIST_DIR` resolves to cwd); R3-composition-root-untested (`server.ts:11-17`); R3-spa-fallback-edges-untested (`static-web.ts:30-41`); R3-non-json-4xx-as-network (`apps/web/src/lib/api.ts:39-49`).
-- Open: pnpm 11 added `minimumReleaseAgeExclude` entries (globals, @tanstack/*) in `pnpm-workspace.yaml`; user decision pending.
+- Release-age exclusions removed (user decision 2026-11-02): globals ^17.13.0, @tanstack/react-query ^5.105.0 (resolved 5.105.0); lockfile regenerated (16-line diff). typecheck/lint/format:check/test/build ok.
+- T7 assess (base 4b2da6b): medium, review_due false, under_budget (31 lines) — pending in slice.
 
 - T7 (inline, one mechanical fix + test): RED: `vitest run src/config.test.ts` → 1 failed (WEB_DIST_DIR not read). GREEN: api 17/17; `pnpm typecheck|lint|format:check|test|build` ok. Smoke: `WEB_DIST_DIR= node dist/server.js` serves the web build from apps/web/dist.
 
 ## Next step
 
-- Decide release-age exclusions and PR chain strategy (~1.5k authored lines > ~400).
+- Manual app test by the user; then PR chain strategy (~1.5k authored lines > ~400).
