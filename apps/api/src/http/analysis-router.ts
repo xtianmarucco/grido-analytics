@@ -45,7 +45,8 @@ export function createAnalysisRouter(): Router {
       throw error;
     }
 
-    const body: AnalysisResponse = { import: result };
+    // Sprint 3 T6 replaces the empty views with the analysis.
+    const body: AnalysisResponse = { import: result, views: [] };
     res.json(body);
   });
 

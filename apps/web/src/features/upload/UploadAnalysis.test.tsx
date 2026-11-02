@@ -44,6 +44,7 @@ function analysis(warnings: unknown[] = []) {
       warnings,
       summary: { totalRows: 2 + warnings.length, includedRows: 2, excludedRows: warnings.length },
     },
+    views: [],
   };
 }
 
