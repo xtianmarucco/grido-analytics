@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { formatDate, formatWallClock } from './format';
+import { formatDate, formatWallClock } from '@/lib/format';
 import { WarningList } from './WarningList';
 
 const numeric = 'text-right tabular-nums';

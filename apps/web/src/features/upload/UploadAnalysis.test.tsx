@@ -3,6 +3,8 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+import { emptyView, views } from '@/features/analysis/fixtures';
+
 import { UploadAnalysis } from './UploadAnalysis';
 
 const shift = {
@@ -21,7 +23,7 @@ const shift = {
   activadas: 27,
 };
 
-function analysis(warnings: unknown[] = []) {
+function analysis(warnings: unknown[] = [], analysisViews: unknown[] = views) {
   return {
     import: {
       period: { from: '2026-10-19', to: '2026-10-25' },
@@ -44,7 +46,7 @@ function analysis(warnings: unknown[] = []) {
       warnings,
       summary: { totalRows: 2 + warnings.length, includedRows: 2, excludedRows: warnings.length },
     },
-    views: [],
+    views: analysisViews,
   };
 }
 
@@ -89,24 +91,50 @@ describe('UploadAnalysis', () => {
     expect((init.body as FormData).get('file')).toBe(file);
   });
 
-  it('shows the summary and the preview table on success', async () => {
+  it('shows the dashboard on the combined view and keeps the preview in "Datos importados"', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json(analysis())));
     renderUpload();
 
     await pick(excel());
 
     expect(await screen.findByRole('status')).toHaveTextContent('2 turnos procesados');
-    expect(screen.getByText('19/10/2026 al 25/10/2026')).toBeInTheDocument();
-    expect(screen.getByText('Almirante (1), Barranqueras (1)')).toBeInTheDocument();
-    const table = screen.getByRole('table');
-    const rows = within(table).getAllByRole('row');
+    expect(screen.getByText('Procesado')).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Ambas sucursales' })).toBeChecked();
+    expect(screen.getByRole('heading', { name: 'Podio' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Observaciones' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Efectividad por cajero' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    const imported = screen.getByText('Datos importados').closest('details');
+    if (!imported) throw new Error('No "Datos importados" section');
+    expect(imported).not.toHaveAttribute('open');
+    expect(imported).toHaveTextContent('2 turnos · 0 advertencias');
+    await userEvent.click(screen.getByText('Datos importados'));
+    expect(imported).toHaveAttribute('open');
+    expect(within(imported).getByText('19/10/2026 al 25/10/2026')).toBeInTheDocument();
+    expect(within(imported).getByText('Almirante (1), Barranqueras (1)')).toBeInTheDocument();
+    const rows = within(within(imported).getByRole('table')).getAllByRole('row');
     expect(rows).toHaveLength(3);
     expect(
       within(rows[1] as HTMLElement)
         .getAllByRole('cell')
         .map((c) => c.textContent),
     ).toEqual(['Almirante', '101', 'Ana', '19/10/2026 13:38', '40', '27', '7']);
-    expect(screen.queryByText(/advertencia/i)).not.toBeInTheDocument();
+  });
+
+  it('explains a view without cashiers', async () => {
+    const analysisViews = [
+      emptyView({ id: 'all', label: 'Ambas sucursales', branchCodes: [1, 2] }),
+    ];
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json(analysis([], analysisViews))));
+    renderUpload();
+
+    await pick(excel());
+
+    expect(await screen.findByText('No hay cajeros con turnos en esta vista.')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Podio' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Ranking' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tickets' }).closest('li')).toHaveTextContent('0');
   });
 
   it('lists warnings when some rows were excluded', async () => {
@@ -120,9 +148,19 @@ describe('UploadAnalysis', () => {
     await pick(excel());
 
     expect(await screen.findByRole('status')).toHaveTextContent('2 advertencias');
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent(
+      'Se procesó el archivo con 2 advertencias. Revíselas en «Datos importados».',
+    );
+    const imported = screen.getByText('Datos importados').closest('details');
+    expect(imported).toHaveTextContent('2 advertencias');
+    expect(imported).not.toHaveAttribute('open');
+
+    await userEvent.click(within(alert).getByRole('link', { name: '«Datos importados»' }));
+
+    expect(imported).toHaveAttribute('open');
     expect(screen.getByText('Fila 4: valor vacío o inválido en usulogin.')).toBeInTheDocument();
     expect(screen.getByText('El turno 9 aparece 2 veces.')).toBeInTheDocument();
-    expect(screen.getByRole('table')).toBeInTheDocument();
   });
 
   it('shows the Spanish API message when the file is rejected, and allows choosing another', async () => {
@@ -140,7 +178,7 @@ describe('UploadAnalysis', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('No se pudo procesar notas.xlsx');
     expect(alert).toHaveTextContent('El archivo debe ser un Excel .xlsx');
-    expect(screen.getByLabelText('Seleccionar archivo')).toBeEnabled();
+    expect(screen.getByLabelText('Seleccionar otro archivo')).toBeEnabled();
   });
 
   it('shows the excluded-row warnings when no row was valid', async () => {
@@ -185,9 +223,9 @@ describe('UploadAnalysis', () => {
     renderUpload();
 
     await pick(excel('semana-1.xlsx'));
-    await screen.findByRole('table');
+    await screen.findByText('semana-1.xlsx');
     const second = excel('semana-2.xlsx');
-    await pick(second, 'Reemplazar archivo');
+    await pick(second, 'Analizar otro archivo');
 
     expect(await screen.findByText('semana-2.xlsx')).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -203,7 +241,7 @@ describe('UploadAnalysis', () => {
     const file = excel();
     fireEvent.drop(screen.getByTestId('drop-zone'), { dataTransfer: { files: [file] } });
 
-    expect(await screen.findByRole('table')).toBeInTheDocument();
+    expect(await screen.findByText('Procesado')).toBeInTheDocument();
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect((init.body as FormData).get('file')).toBe(file);
   });

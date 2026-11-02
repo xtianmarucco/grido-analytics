@@ -3,28 +3,50 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Theme tokens from docs/UI_UX_GUIDELINES.md §2 (palette approved 2026-11-02). Hex values are the
+ * source of the computed WCAG ratios; change them only together with the contrast table.
+ * Light theme only for the MVP; tokens stay in :root so a dark theme can be added later.
+ */
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.985 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.488 0.217 264.4);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --success: oklch(0.527 0.154 150.069);
-  --warning: oklch(0.555 0.163 48.998);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: #f6f8fb;
+  --foreground: #0f1b2d;
+  --card: #ffffff;
+  --card-foreground: #0f1b2d;
+  --popover: #ffffff;
+  --popover-foreground: #0f1b2d;
+  --primary: #0b3d91;
+  --primary-foreground: #ffffff;
+  --secondary: #e8eef6;
+  --secondary-foreground: #0f1b2d;
+  --accent: #e0f2fe;
+  --accent-foreground: #0b3d91;
+  --muted: #eef2f7;
+  --muted-foreground: #4f5d72;
+  --border: #d5dde8;
+  --input: #7e8b9c;
+  --ring: #0284c7;
+  --success: #15803d;
+  --success-soft: #eff8f2;
+  --warning: #b45309;
+  --warning-soft: #fef6e7;
+  --info: #0369a1;
+  --info-soft: #e6f3fa;
+  --destructive: #b42318;
+  --destructive-soft: #fdecea;
+
+  --podium-gold: #f2c14e;
+  --podium-gold-fg: #3d2c00;
+  --podium-gold-edge: #a27a12;
+  --podium-silver: #d3dae3;
+  --podium-silver-fg: #0f1b2d;
+  --podium-silver-edge: #7b8794;
+  --podium-bronze: #e2a372;
+  --podium-bronze-fg: #3d1f05;
+  --podium-bronze-edge: #9a5b2a;
+  --chart-1: #1d5fbf;
+  --chart-track: #e8eef6;
 }
 
 @theme inline {
@@ -48,18 +70,38 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
   --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-podium-gold: var(--podium-gold);
+  --color-podium-gold-fg: var(--podium-gold-fg);
+  --color-podium-gold-edge: var(--podium-gold-edge);
+  --color-podium-silver: var(--podium-silver);
+  --color-podium-silver-fg: var(--podium-silver-fg);
+  --color-podium-silver-edge: var(--podium-silver-edge);
+  --color-podium-bronze: var(--podium-bronze);
+  --color-podium-bronze-fg: var(--podium-bronze-fg);
+  --color-podium-bronze-edge: var(--podium-bronze-edge);
+  --color-chart-1: var(--chart-1);
+  --color-chart-track: var(--chart-track);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background font-sans text-foreground antialiased;
+  }
+  /* Guide §9: 2 px focus ring with 2 px offset on every interactive element. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
   }
 }
