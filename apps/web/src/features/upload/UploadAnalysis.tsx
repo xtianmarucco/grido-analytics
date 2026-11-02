@@ -1,25 +1,18 @@
-import { ErrorCode, type ImportWarning, importWarningSchema } from '@grido/shared';
+import { type ImportWarning, importWarningSchema } from '@grido/shared';
 import { useState } from 'react';
 import { z } from 'zod';
 
 import { AnalysisDashboard } from '@/features/analysis/AnalysisDashboard';
-import { ApiError, ClientErrorCode } from '@/lib/api';
+import { ApiError, ClientErrorCode, isUserFacingError } from '@/lib/api';
 
 import { UploadAnalysisView, type UploadState } from './UploadAnalysisView';
 import { useAnalysisUpload } from './useAnalysisUpload';
 
-/** API codes whose `message` is user-facing Spanish copy. Others get a generic message. */
-const USER_FACING_CODES = new Set<string>(
-  Object.values(ErrorCode).filter(
-    (code) => code !== ErrorCode.NotFound && code !== ErrorCode.InternalError,
-  ),
-);
-
 const warningDetailsSchema = z.object({ warnings: z.array(importWarningSchema) });
 
 function errorMessage(error: unknown): string {
+  if (isUserFacingError(error)) return error.message;
   if (error instanceof ApiError) {
-    if (USER_FACING_CODES.has(error.code)) return error.message;
     if (error.code === ClientErrorCode.NetworkError) {
       return 'No se pudo conectar con el servidor. Verifique que la aplicación esté en ejecución e intente nuevamente.';
     }
@@ -34,7 +27,7 @@ function errorWarnings(error: unknown): ImportWarning[] {
 }
 
 /**
- * Container: keeps the selected file (Sprint 5 exports will re-send it), maps the upload mutation
+ * Container: keeps the selected file (report downloads re-send it), maps the upload mutation
  * and shows the dashboard for a successful result. Each upload replaces the whole result.
  */
 export function UploadAnalysis() {
@@ -72,7 +65,11 @@ export function UploadAnalysis() {
       <UploadAnalysisView state={state} onFileSelected={selectFile} />
       {state.kind === 'success' && upload.data && (
         // A new key per upload resets the selected view and the disclosure.
-        <AnalysisDashboard key={upload.submittedAt} analysis={upload.data} />
+        <AnalysisDashboard
+          key={upload.submittedAt}
+          analysis={upload.data}
+          file={file ?? undefined}
+        />
       )}
     </div>
   );

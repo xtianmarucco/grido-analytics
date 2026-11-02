@@ -122,6 +122,26 @@ describe('UploadAnalysis', () => {
     ).toEqual(['Almirante', '101', 'Ana', '19/10/2026 13:38', '40', '27', '7']);
   });
 
+  it('downloads the report of the selected view, re-sending the uploaded file', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(json(analysis()))
+      .mockReturnValueOnce(new Promise(() => {}));
+    vi.stubGlobal('fetch', fetchMock);
+    renderUpload();
+    const file = excel();
+
+    await pick(file);
+    await userEvent.click(await screen.findByRole('radio', { name: 'Barranqueras' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Descargar Excel · Barranqueras' }));
+
+    expect(screen.getByRole('button', { name: 'Descargar PDF · Barranqueras' })).toBeDisabled();
+    const [path, init] = fetchMock.mock.calls[1] as [string, RequestInit];
+    expect(path).toBe('/api/exports/xlsx');
+    expect((init.body as FormData).get('file')).toBe(file);
+    expect((init.body as FormData).get('view')).toBe('branch-2');
+  });
+
   it('explains a view without cashiers', async () => {
     const analysisViews = [
       emptyView({ id: 'all', label: 'Ambas sucursales', branchCodes: [1, 2] }),

@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { ApiError, ClientErrorCode, fetchHealth, uploadAnalysis } from './api';
+import {
+  ApiError,
+  ClientErrorCode,
+  downloadReport,
+  fetchHealth,
+  fileNameFromDisposition,
+  uploadAnalysis,
+} from './api';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -93,5 +100,83 @@ describe('uploadAnalysis', () => {
       status: 422,
       details: { missing: ['sv_aceptada'] },
     });
+  });
+});
+
+describe('downloadReport', () => {
+  const report = { label: 'Ambas sucursales', period: { from: '2026-10-19', to: '2026-10-25' } };
+
+  function pdfResponse(headers: Record<string, string> = {}): Response {
+    return new Response('%PDF-1.7', {
+      status: 200,
+      headers: { 'Content-Type': 'application/pdf', ...headers },
+    });
+  }
+
+  it('posts the file and view id, and returns the blob with the server filename', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      pdfResponse({
+        'Content-Disposition':
+          'attachment; filename="grido-informe-almirante-2026-10-19-al-2026-10-25.pdf"',
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const file = new File(['PK'], 'turnos.xlsx');
+
+    const result = await downloadReport({ file, viewId: 'branch-1', format: 'pdf', report });
+
+    const [path, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(path).toBe('/api/exports/pdf');
+    expect(init.method).toBe('POST');
+    const body = init.body as FormData;
+    expect(body.get('file')).toBe(file);
+    expect(body.get('view')).toBe('branch-1');
+    expect(result.filename).toBe('grido-informe-almirante-2026-10-19-al-2026-10-25.pdf');
+    expect(await result.blob.text()).toBe('%PDF-1.7');
+  });
+
+  it('falls back to the contract filename without a usable Content-Disposition', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(pdfResponse()));
+
+    const result = await downloadReport({
+      file: new File(['PK'], 'turnos.xlsx'),
+      viewId: 'all',
+      format: 'xlsx',
+      report,
+    });
+
+    expect(result.filename).toBe('grido-informe-ambas-sucursales-2026-10-19-al-2026-10-25.xlsx');
+  });
+
+  it('surfaces the API error envelope', async () => {
+    const envelope = { error: { code: 'INVALID_VIEW', message: 'Seleccione una vista válida.' } };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(envelope, 400)));
+
+    await expect(
+      downloadReport({ file: new File(['PK'], 'a.xlsx'), viewId: 'all', format: 'pdf', report }),
+    ).rejects.toMatchObject({ code: 'INVALID_VIEW', status: 400 });
+  });
+
+  it('throws NETWORK_ERROR when the request fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+
+    await expect(
+      downloadReport({ file: new File(['PK'], 'a.xlsx'), viewId: 'all', format: 'pdf', report }),
+    ).rejects.toMatchObject({ code: ClientErrorCode.NetworkError });
+  });
+});
+
+describe('fileNameFromDisposition', () => {
+  it.each([
+    ['attachment; filename="informe.pdf"', 'informe.pdf'],
+    ['attachment; filename=informe.xlsx', 'informe.xlsx'],
+    ["attachment; filename*=UTF-8''informe%20semanal.pdf", 'informe semanal.pdf'],
+    ['attachment; filename="../../etc/informe.pdf"', 'informe.pdf'],
+  ])('%s → %s', (header, name) => {
+    expect(fileNameFromDisposition(header)).toBe(name);
+  });
+
+  it.each([null, '', 'attachment', 'attachment; filename=""'])('%s → undefined', (header) => {
+    expect(fileNameFromDisposition(header)).toBeUndefined();
   });
 });

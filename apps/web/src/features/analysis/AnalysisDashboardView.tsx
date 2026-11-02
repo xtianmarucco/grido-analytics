@@ -1,5 +1,6 @@
 import type { AnalysisView, ImportResult } from '@grido/shared';
 import { TriangleAlert, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { formatPeriod } from '@/lib/format';
@@ -21,6 +22,8 @@ export interface AnalysisDashboardViewProps {
   onSelectView: (viewId: string) => void;
   importedOpen: boolean;
   onImportedOpenChange: (open: boolean) => void;
+  /** Report downloads for the selected view, shown under the view selector. */
+  reportActions?: ReactNode;
 }
 
 /**
@@ -34,6 +37,7 @@ export function AnalysisDashboardView({
   onSelectView,
   importedOpen,
   onImportedOpenChange,
+  reportActions,
 }: AnalysisDashboardViewProps) {
   const warnings = importResult.warnings.length;
   // The combined view lists the branches each cashier worked in.
@@ -76,6 +80,7 @@ export function AnalysisDashboardView({
               {formatPeriod(view.summary.period)}
             </p>
           </div>
+          {reportActions}
           <p aria-live="polite" className="sr-only">
             {`Mostrando ${view.label}`}
           </p>

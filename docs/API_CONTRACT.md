@@ -7,8 +7,8 @@ truth for both sides.
 | ------ | ------------------- | ----------- | ------ |
 | GET    | `/api/health`       | Implemented | 1      |
 | POST   | `/api/analysis`     | Implemented | 2 (+3) |
-| POST   | `/api/exports/pdf`  | Draft       | 5      |
-| POST   | `/api/exports/xlsx` | Draft       | 5      |
+| POST   | `/api/exports/pdf`  | Implemented | 5      |
+| POST   | `/api/exports/xlsx` | Implemented | 5      |
 
 ## Errors
 
@@ -24,20 +24,21 @@ Every non-2xx response:
 }
 ```
 
-| Code                    | Status | When                                                              | `details`                                   |
-| ----------------------- | ------ | ----------------------------------------------------------------- | ------------------------------------------- |
-| `NOT_FOUND`             | 404    | Unknown `/api/*` route (also unknown routes without a web build)  | `{ method, path }`                          |
-| `INTERNAL_ERROR`        | 500    | Any unexpected error. Generic message; no stack, no internals.    | —                                           |
-| `FILE_REQUIRED`         | 400    | No `file` field (or not a multipart body)                         | —                                           |
-| `INVALID_UPLOAD`        | 400    | Malformed multipart, more than one file, file in another field    | —                                           |
-| `UNSUPPORTED_FILE_TYPE` | 415    | Not `.xlsx`: extension, MIME type or ZIP signature (`PK\x03\x04`) | —                                           |
-| `FILE_TOO_LARGE`        | 413    | Upload over 5 MB, or declared uncompressed content over 64 MB     | `{ maxBytes }` / `{ maxUncompressedBytes }` |
-| `UNREADABLE_FILE`       | 422    | Corrupt ZIP, or a ZIP without a worksheet                         | —                                           |
-| `EMPTY_FILE`            | 422    | Empty first worksheet, or header without data rows                | —                                           |
-| `MISSING_COLUMNS`       | 422    | Required columns absent                                           | `{ missing: string[] }`                     |
-| `MULTIPLE_PERIODS`      | 422    | Rows with different `desde` / `hasta` dates                       | `{ periods: { from, to }[] }`               |
-| `TOO_MANY_ROWS`         | 422    | More than 10 000 data rows                                        | `{ maxRows }`                               |
-| `NO_VALID_ROWS`         | 422    | Every row was excluded                                            | `{ warnings, summary }`                     |
+| Code                    | Status | When                                                               | `details`                                   |
+| ----------------------- | ------ | ------------------------------------------------------------------ | ------------------------------------------- |
+| `NOT_FOUND`             | 404    | Unknown `/api/*` route (also unknown routes without a web build)   | `{ method, path }`                          |
+| `INTERNAL_ERROR`        | 500    | Any unexpected error. Generic message; no stack, no internals.     | —                                           |
+| `FILE_REQUIRED`         | 400    | No `file` field (or not a multipart body)                          | —                                           |
+| `INVALID_UPLOAD`        | 400    | Malformed multipart, more than one file, file in another field     | —                                           |
+| `UNSUPPORTED_FILE_TYPE` | 415    | Not `.xlsx`: extension, MIME type or ZIP signature (`PK\x03\x04`)  | —                                           |
+| `FILE_TOO_LARGE`        | 413    | Upload over 5 MB, or declared uncompressed content over 64 MB      | `{ maxBytes }` / `{ maxUncompressedBytes }` |
+| `UNREADABLE_FILE`       | 422    | Corrupt ZIP, or a ZIP without a worksheet                          | —                                           |
+| `EMPTY_FILE`            | 422    | Empty first worksheet, or header without data rows                 | —                                           |
+| `MISSING_COLUMNS`       | 422    | Required columns absent                                            | `{ missing: string[] }`                     |
+| `MULTIPLE_PERIODS`      | 422    | Rows with different `desde` / `hasta` dates                        | `{ periods: { from, to }[] }`               |
+| `TOO_MANY_ROWS`         | 422    | More than 10 000 data rows                                         | `{ maxRows }`                               |
+| `NO_VALID_ROWS`         | 422    | Every row was excluded                                             | `{ warnings, summary }`                     |
+| `INVALID_VIEW`          | 400    | Export without a valid `view` id, or a view the file does not have | —                                           |
 
 `details` is optional. Clients branch on `code`, never on `message`. Import messages are neutral
 Spanish and are shown to the user as-is; `NOT_FOUND` and `INTERNAL_ERROR` keep English messages
@@ -171,10 +172,29 @@ Schema: `healthResponseSchema`.
   cashier's `position` is its position among eligible cashiers.
 - `observations[].rule`: `O1`–`O6`; `cashierKey` only on per-cashier rules. Show texts as-is.
 
-## Drafts
+## POST /api/exports/pdf · POST /api/exports/xlsx
 
-### POST /api/exports/pdf · POST /api/exports/xlsx
+- Body: `multipart/form-data`: field `file` (same rules as `/api/analysis`) and field `view`,
+  the id of one analysis view (`branch-<code>` or `all`; schema `exportRequestFieldsSchema`).
+- The file is re-sent so the backend recomputes the analysis: it stays the single source of
+  truth (D-11). Nothing is stored; the report is built in memory.
+- Checks, in order: file present → ZIP signature → `view` format → import (same errors as
+  `/api/analysis`) → the view exists in the file. Both view failures are 400 `INVALID_VIEW`.
+- 200 headers:
 
-- Body: `multipart/form-data`, fields `file` and `view` (`almirante` | `barranqueras` | `combined`).
-- 200: the file as a download.
-- The file is re-sent so the backend recomputes the analysis: it stays the single source of truth.
+| Header                | PDF                                 | Excel                                                               |
+| --------------------- | ----------------------------------- | ------------------------------------------------------------------- |
+| `Content-Type`        | `application/pdf`                   | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` |
+| `Content-Disposition` | `attachment; filename="<name>.pdf"` | `attachment; filename="<name>.xlsx"`                                |
+| `Cache-Control`       | `no-store`                          | `no-store`                                                          |
+
+- File name (`reportFileName`): `grido-informe-<slug>-<from>-al-<to>.<ext>`, slug from the view
+  label (accents stripped, lowercase, hyphens): `grido-informe-ambas-sucursales-2026-10-19-al-2026-10-25.pdf`.
+  Always ASCII, so no `filename*` is sent; the web parses either and falls back to the same name.
+- PDF (A4 portrait): title "Informe semanal de sobreventas", view, period, generation date
+  (`dd/mm/yyyy HH:mm`, server local time); Resumen; Podio (vacant / covered-by-tie texts);
+  Observaciones (Dato / Interpretación / Recomendación); Ranking with eligibility reasons;
+  footer with the podium requirements and "Página X de Y".
+- Excel sheets: `Resumen`, `Ranking` (bold frozen header, autofilter), `Podio`,
+  `Observaciones`. Counts are numbers; effectiveness is a fraction with format `0.00%`
+  (`18.8679…` → `0.188679…`, shown `18.87%`); `null` is the text "No calculable".
