@@ -25,6 +25,7 @@ apps/web/src/
 ├── lib/
 │   ├── api.ts                    # Typed fetch client, validates with shared schemas
 │   ├── format.ts                 # es-AR formatting helpers (moved from features/upload)
+│   ├── plural.ts                 # Count + singular/plural copy (moved from features/upload)
 │   └── utils.ts                  # cn()
 └── features/
     ├── health/                   # Server status (Sprint 1)
@@ -40,6 +41,8 @@ apps/web/src/
         ├── ObservationList.tsx
         ├── EffectivenessChart.tsx
         ├── ImportedData.tsx           # Collapsible wrapper around ImportPreview
+        ├── chartScale.ts              # Display-only chart axis bounds
+        ├── fixtures.ts                # Test fixtures typed from @grido/shared
         └── *.test.tsx                 # Next to the component
 ```
 
@@ -71,8 +74,8 @@ UploadAnalysis (container)
 
 ## Formatting helpers
 
-- Location: `apps/web/src/lib/format.ts` (the Sprint 2 `features/upload/format.ts` moves there
-  when analysis needs it), tested in `lib/format.test.ts`.
+- Location: `apps/web/src/lib/format.ts` (moved from `features/upload/` in Sprint 4), tested
+  in `lib/format.test.ts`.
 - Helpers: `formatPercent(value: number | null)` → `18,87 %` or `No calculable`;
   `formatInteger(n)` → `1.234`; `formatDate('2026-10-19')` → `19/10/2026`;
   `formatPeriod({ from, to })` → `19/10/2026 – 25/10/2026`; `formatWallClock`.

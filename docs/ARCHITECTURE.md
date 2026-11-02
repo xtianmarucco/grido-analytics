@@ -37,15 +37,38 @@ never import from `http/` or Express; only `import/read-workbook.ts` touches exc
 
 ## `apps/web/src`
 
-| Folder               | Contents                                                      |
-| -------------------- | ------------------------------------------------------------- |
-| `features/health/`   | Header server indicator (container `ServerStatus` + view)     |
-| `features/upload/`   | Drop zone, upload mutation, import preview and warnings       |
-| `features/analysis/` | Views, ranking, podium, warnings (Sprint 4)                   |
-| `components/ui/`     | shadcn/ui primitives used (button, card, alert, badge, table) |
-| `lib/api.ts`         | Typed fetch client; validates responses with shared schemas   |
+| Folder               | Contents                                                                                     |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| `features/health/`   | Header server indicator (container `ServerStatus` + view)                                    |
+| `features/upload/`   | Drop zone, upload mutation (keeps the selected `File`), `ImportPreview`, `WarningList`       |
+| `features/analysis/` | Dashboard (Sprint 4): view selector, summary, podium, observations, ranking, chart, imported |
+| `components/ui/`     | shadcn/ui primitives used (button, card, alert, badge, table)                                |
+| `lib/api.ts`         | Typed fetch client; validates responses with shared schemas                                  |
+| `lib/format.ts`      | `es-AR` formatting (percent, integer, date, period, ordinal); `lib/plural.ts` for counts     |
 
-Containers own data fetching (TanStack Query); presentational components receive props only.
+Containers own data fetching (TanStack Query) and UI state; presentational components receive props
+only.
+
+### Dashboard flow (Sprint 4)
+
+```text
+UploadAnalysis (container: selected File + upload mutation)
+├─ UploadAnalysisView        drop zone → processing → compact "Procesado" row / error
+└─ AnalysisDashboard         (container, key = upload; state: selected view, disclosure)
+   └─ AnalysisDashboardView  warnings alert · ViewSelector + period · SummaryCards · Podium ·
+                             ObservationList · RankingTable · EffectivenessChart · ImportedData
+```
+
+- Default view `all` ("Ambas sucursales"), falling back to the first view; switching views is a
+  state change, never a request. A new upload remounts the dashboard.
+- The web never recomputes positions, eligibility, podium steps or observations. It only formats,
+  filters/sorts rows for display (`useRankingDisplay`) and chooses chart axis bounds
+  (`chartScale.ts`).
+- A view without cashiers shows the summary, the observations and a muted note instead of podium,
+  ranking and chart.
+- Recharts (bundled) draws the effectiveness chart; the SVG is `aria-hidden` and a visually hidden
+  table carries the values. Design rules: [UI_UX_GUIDELINES.md](UI_UX_GUIDELINES.md),
+  [FRONTEND_RULES.md](FRONTEND_RULES.md).
 
 ## Production mode
 
