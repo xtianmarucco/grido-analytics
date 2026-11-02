@@ -40,7 +40,7 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 
 - [x] T1 `packages/shared`: export view param schema, report filename helper/contract.
 - [x] T2 `apps/api/src/export/xlsx`: pure workbook builder (4 sheets) + tests reading it back.
-- [ ] T3 `apps/api/src/export/pdf`: pure doc definition builder + pdfmake rendering to Buffer + tests.
+- [x] T3 `apps/api/src/export/pdf`: pure doc definition builder + pdfmake rendering to Buffer + tests.
 - [ ] T4 `apps/api/src/http`: `/api/exports/pdf` and `/api/exports/xlsx` routes, headers, errors + supertest.
 - [ ] T5 `apps/web`: export buttons, states, download handling + component tests.
 - [ ] T6 Docs.
@@ -58,7 +58,8 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 - Engram mirror `odd/sprint-5-exports/tasks`: PENDING (host session registration failing in this session).
 - T1 (base `63526a5`): RED `export.test.ts` failed (module `./export.js` missing); GREEN shared 46/46 tests, typecheck, build. Adds `exportRequestFieldsSchema` (view = analysis view id), `ReportFormat`, `REPORT_CONTENT_TYPES`, `reportSlug`, `reportFileName`, `ErrorCode.InvalidView`.
 - T2 (previous `1c5e042`): RED workbook tests failed (module missing), then a second RED caught Resumen counts formatted as percent; GREEN 6/6 export tests. Percent applied per effectiveness cell only. Shared report copy/format in `export/report-copy.ts`, `export/format.ts`.
+- T3 (previous `9083a26`): RED both PDF test files failed (modules missing); GREEN 18/18 export tests. `pdfmake` 0.3.13 + `@types/pdfmake` 0.3.3 (dev). Node API verified in the installed package: singleton `createPdf().getBuffer()`, `virtualfs` (untyped, local interface), `setUrlAccessPolicy`/`setLocalAccessPolicy` set to deny all; Roboto loaded from `pdfmake/build/vfs_fonts.js` into the in-memory vfs. Generation date uses server local time.
 
 ## Next step
 
-- Implement T3.
+- Implement T4.
