@@ -68,6 +68,12 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 - Native review (2026-11-02): medium (`configuration_change` apps/api/package.json), review_due slice_budget_reached (2459 lines over 63526a5..HEAD). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-73b7d5d342a1423b).
 - Advisory follow-ups (non-blocking): R3-revoke-before-download (WARNING, `apps/web/src/lib/download.ts:9-14`: object URL revoked synchronously after click, may break downloads in Firefox/Safari silently); R3-stale-mutation-state-across-views (WARNING, `apps/web/src/features/export/ReportDownloads.tsx:23-43`: one mutation across view switches — stale error alert and wrong view label while pending); R3-test-global-leak (`ReportDownloads.test.tsx:22-28`, `download.test.ts`: URL mutated in place, click spy not restored).
 
+- Sprint 5 closed by the user on 2026-11-02 ("todo funcionando muy bien"). The two review WARNINGs (revoke-before-download, stale mutation state across views) and the test global leak are deferred as open follow-ups, not fixed in this sprint. Delivery: single push of `feat/sprint-5-exports`; PR opened by the user on GitHub.
+
+## Status
+
+Closed.
+
 ## Next step
 
-- User: open the scratch PDFs/XLSX in a viewer and print one PDF on A4 (visual sign-off); then native review / PR per repository policy.
+- New requirement from the user (to be analyzed); pending follow-ups from the Sprint 5 review.
