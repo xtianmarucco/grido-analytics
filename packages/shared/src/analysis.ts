@@ -12,6 +12,27 @@ export type WallClockDateTime = z.infer<typeof wallClockDateTimeSchema>;
 
 const count = z.number().int().nonnegative();
 
+/**
+ * Money in pesos with cents, as written by the source system (e.g. `132600.01`). Thresholds are
+ * compared on integer cents; values are rounded only for display.
+ */
+const money = z.number();
+const nonNegativeMoney = money.nonnegative();
+
+/** A percentage at full precision, or `null` ("No calculable") when its base is zero. */
+const percentOrNull = z.number().nullable();
+
+/**
+ * Shift slot by the wall-clock hour of `turiniciaturno`: `dia` before 15:00, `noche` from 15:00.
+ * Labels: "Día" / "Noche".
+ */
+export const ShiftSlot = {
+  Day: 'dia',
+  Night: 'noche',
+} as const;
+
+export type ShiftSlot = (typeof ShiftSlot)[keyof typeof ShiftSlot];
+
 /** One shift after validation and normalization. */
 export const normalizedShiftSchema = z.object({
   /** 1-based sheet row the shift came from (header = row 1). */
@@ -37,6 +58,16 @@ export const normalizedShiftSchema = z.object({
   aceptadas: count,
   /** `rechazadas + aceptadas`. */
   activadas: count,
+  /** `venta`: ticketed sales of the shift. */
+  venta: nonNegativeMoney,
+  /** `turefectivo`: cash sales of the shift. */
+  turEfectivo: nonNegativeMoney,
+  /** `ventaclubgrido`: sales to Club Grido members. */
+  ventaClubGrido: nonNegativeMoney,
+  /** `turdiferencia`: cash-count difference; negative = faltante, positive = sobrante. */
+  turDiferencia: money,
+  /** Derived from `startedAt`. */
+  slot: z.enum(ShiftSlot),
 });
 
 export type NormalizedShift = z.infer<typeof normalizedShiftSchema>;
@@ -216,6 +247,152 @@ export const viewSummarySchema = z.object({
 
 export type ViewSummary = z.infer<typeof viewSummarySchema>;
 
+/** Sign of a shift's cash-count difference. */
+export const CashDifferenceKind = {
+  Faltante: 'faltante',
+  Sobrante: 'sobrante',
+} as const;
+
+export type CashDifferenceKind = (typeof CashDifferenceKind)[keyof typeof CashDifferenceKind];
+
+/** Cash-count differences summed over a set of shifts. */
+export const cashDifferenceTotalsSchema = z.object({
+  /** Σturdiferencia. */
+  net: money,
+  /** Σ of the negative differences (≤ 0). */
+  faltante: money.nonpositive(),
+  /** Σ of the positive differences (≥ 0). */
+  sobrante: nonNegativeMoney,
+  /** Shifts whose difference is not zero. */
+  shiftsWithDifference: count,
+  /** Shifts flagged by the 1 % rule (see `shiftAlerts`). */
+  alertedShifts: count,
+});
+
+export type CashDifferenceTotals = z.infer<typeof cashDifferenceTotalsSchema>;
+
+/** Sales and cash indicators of a set of shifts. Percentages are computed on sums. */
+const cashIndicatorsShape = {
+  shiftCount: count,
+  tickets: count,
+  venta: nonNegativeMoney,
+  turEfectivo: nonNegativeMoney,
+  ventaClubGrido: nonNegativeMoney,
+  /** Σturefectivo / Σventa × 100; `null` when Σventa = 0. */
+  cashShare: percentOrNull,
+  /** Σventaclubgrido / Σventa × 100; `null` when Σventa = 0. */
+  clubShare: percentOrNull,
+  difference: cashDifferenceTotalsSchema,
+  /** Σventa / Σtickets; `null` without tickets. */
+  averageTicket: money.nullable(),
+  /** Σ(turcierre − turiniciaturno) in hours. */
+  hours: z.number().nonnegative(),
+  /** Σtickets / hours; `null` when hours = 0. */
+  ticketsPerHour: z.number().nonnegative().nullable(),
+};
+
+export const cashSummarySchema = z.object(cashIndicatorsShape);
+
+export type CashSummary = z.infer<typeof cashSummarySchema>;
+
+/** Tickets per hour of one cashier in one slot. */
+export const cashierSlotStatsSchema = z.object({
+  slot: z.enum(ShiftSlot),
+  shiftCount: count,
+  tickets: count,
+  hours: z.number().nonnegative(),
+  ticketsPerHour: z.number().nonnegative().nullable(),
+});
+
+export type CashierSlotStats = z.infer<typeof cashierSlotStatsSchema>;
+
+/** Cash indicators of one cashier over the view (merged across branches in `all`). */
+export const cashierCashIndicatorsSchema = z.object({
+  cashierKey: z.string().min(1),
+  cashierName: z.string().min(1),
+  branchCodes: z.array(z.number().int().positive()).min(1),
+  ...cashIndicatorsShape,
+  /** Slots the cashier worked in, `dia` first. */
+  slots: z.array(cashierSlotStatsSchema),
+});
+
+export type CashierCashIndicators = z.infer<typeof cashierCashIndicatorsSchema>;
+
+/** View totals of one slot. */
+export const slotStatsSchema = z.object({
+  slot: z.enum(ShiftSlot),
+  shiftCount: count,
+  tickets: count,
+  venta: nonNegativeMoney,
+  turEfectivo: nonNegativeMoney,
+  cashShare: percentOrNull,
+  hours: z.number().nonnegative(),
+  ticketsPerHour: z.number().nonnegative().nullable(),
+});
+
+export type SlotStats = z.infer<typeof slotStatsSchema>;
+
+/**
+ * "Señal para revisar": a shift whose |turdiferencia| ≥ 1 % of its turefectivo (inclusive,
+ * compared on cents), or any non-zero difference without cash.
+ */
+export const shiftAlertSchema = z.object({
+  turno: z.number().int().positive(),
+  branchCode: z.number().int().positive(),
+  branchName: z.string().min(1),
+  cashierKey: z.string().min(1),
+  cashierName: z.string().min(1),
+  startedAt: wallClockDateTimeSchema,
+  slot: z.enum(ShiftSlot),
+  difference: money,
+  turEfectivo: nonNegativeMoney,
+  /** |difference| / turEfectivo × 100; `null` when the shift had no cash. */
+  percentOfCash: percentOrNull,
+  kind: z.enum(CashDifferenceKind),
+  /** Spanish, neutral fact + cautious recommendation. */
+  message: z.string().min(1),
+});
+
+export type ShiftAlert = z.infer<typeof shiftAlertSchema>;
+
+/**
+ * "Señal para revisar": in one branch + slot, the cashier's cash share is ≥ 10 points below the
+ * share of the other cashiers of that branch + slot. Never computed across branches.
+ */
+export const lowCashSignalSchema = z.object({
+  branchCode: z.number().int().positive(),
+  branchName: z.string().min(1),
+  slot: z.enum(ShiftSlot),
+  cashierKey: z.string().min(1),
+  cashierName: z.string().min(1),
+  shiftCount: count,
+  /** The cashier's Σturefectivo / Σventa × 100 in the branch + slot. */
+  cashierShare: z.number(),
+  /** The other cashiers' Σturefectivo / Σventa × 100 in the branch + slot. */
+  peersShare: z.number(),
+  /** `peersShare − cashierShare`. */
+  gapPoints: z.number(),
+  /** Spanish, neutral fact + cautious recommendation. */
+  message: z.string().min(1),
+});
+
+export type LowCashSignal = z.infer<typeof lowCashSignalSchema>;
+
+/** Cash control of a view (Sprint 6). Only ticketed sales are in the source data. */
+export const cashControlSchema = z.object({
+  summary: cashSummarySchema,
+  /** By `cashierKey`. */
+  cashiers: z.array(cashierCashIndicatorsSchema),
+  /** `dia` first; only slots with shifts. */
+  slots: z.array(slotStatsSchema),
+  /** By `startedAt`, then `turno`. */
+  shiftAlerts: z.array(shiftAlertSchema),
+  /** By branch, slot, then gap (largest first). */
+  lowCashSignals: z.array(lowCashSignalSchema),
+});
+
+export type CashControl = z.infer<typeof cashControlSchema>;
+
 /** One analysis view: a single branch (`branch-<code>`) or every branch together (`all`). */
 export const analysisViewSchema = z.object({
   id: z.string().regex(/^(branch-[1-9]\d*|all)$/, 'Expected branch-<code> or all'),
@@ -228,6 +405,8 @@ export const analysisViewSchema = z.object({
   /** Steps 1, 2 and 3, in that order. */
   podium: z.tuple([podiumStepSchema, podiumStepSchema, podiumStepSchema]),
   observations: z.array(observationSchema),
+  /** Sales mix, cash-count differences and review signals (Sprint 6). */
+  cashControl: cashControlSchema,
 });
 
 export type AnalysisView = z.infer<typeof analysisViewSchema>;
