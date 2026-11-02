@@ -24,6 +24,8 @@ export const ErrorCode = {
   TooManyRows: 'TOO_MANY_ROWS',
   /** 422: every row was excluded. `details.warnings`, `details.summary`. */
   NoValidRows: 'NO_VALID_ROWS',
+  /** 400: export request without a known `view` id. */
+  InvalidView: 'INVALID_VIEW',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
