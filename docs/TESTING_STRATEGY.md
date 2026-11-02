@@ -4,13 +4,14 @@ Vitest everywhere (`pnpm test`). Test-first for behavior: failing test, implemen
 
 ## Layers
 
-| Layer            | Where                        | How                                                          |
-| ---------------- | ---------------------------- | ------------------------------------------------------------ |
-| Contract         | `packages/shared/src/*.test` | Parse valid and invalid bodies with the zod schemas          |
-| Import rules     | `apps/api/src/import/*.test` | Pure functions on plain `RawRow` objects; no Express, no I/O |
-| Workbook reading | `apps/api/src/import/*.test` | Real exceljs on in-memory workbooks built in the test        |
-| HTTP             | `apps/api/src/http/*.test`   | supertest against `createApp()`; no listening socket         |
-| Web              | `apps/web/src/**/*.test.tsx` | Testing Library + jsdom; stub `fetch`, never modules         |
+| Layer            | Where                          | How                                                                         |
+| ---------------- | ------------------------------ | --------------------------------------------------------------------------- |
+| Contract         | `packages/shared/src/*.test`   | Parse valid and invalid bodies with the zod schemas                         |
+| Import rules     | `apps/api/src/import/*.test`   | Pure functions on plain `RawRow` objects; no Express, no I/O                |
+| Analysis rules   | `apps/api/src/analysis/*.test` | Pure functions on built shifts / totals (`analysis/test-utils/builders.ts`) |
+| Workbook reading | `apps/api/src/import/*.test`   | Real exceljs on in-memory workbooks built in the test                       |
+| HTTP             | `apps/api/src/http/*.test`     | supertest against `createApp()`; no listening socket                        |
+| Web              | `apps/web/src/**/*.test.tsx`   | Testing Library + jsdom; stub `fetch`, never modules                        |
 
 ## Excel fixtures
 
@@ -31,4 +32,4 @@ pnpm start
 curl -s -F "file=@/path/to/report.xlsx" http://127.0.0.1:3001/api/analysis
 ```
 
-Report only counts and the period, never names.
+Report only counts, the period, effectiveness values, podium statuses and observation rule ids per view, never names.

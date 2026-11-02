@@ -21,27 +21,67 @@ Approved in Sprint 0. Implemented in Sprint 3 (`apps/api/src/analysis`).
 
 ## Views and identity
 
-- Three views: Almirante, Barranqueras, both branches.
-- Cashier identity is case-insensitive (`carlos` = `Carlos`).
-- The combined view merges a cashier's shifts across both branches before computing.
+- One view per branch in the file, ordered by branch code (`branch-<code>`, labelled with the
+  import's branch name), then the combined view (`all`): "Ambas sucursales" with two branches,
+  "Todas las sucursales" otherwise.
+- Cashier identity is case-insensitive (`carlos` = `Carlos`); the display name is the import's
+  `cashierName`.
+- The combined view merges a cashier's shifts across both branches before computing; the
+  entry lists the branches (`branchCodes`).
+- Summary per view: tickets, activadas, aceptadas, cashier and shift counts, period, and the
+  general effectiveness on the view totals (`null` without activadas).
 
 ## Ranking
 
-Order by, in sequence:
+Every cashier of the view. Order by, in sequence:
 
-1. Effectiveness, descending.
+1. Effectiveness, descending. Not calculable goes after any calculable value (even 0 %).
 2. Aceptadas, descending.
 3. Activadas, descending.
 
-Still tied → shared position.
+Still tied → shared position, standard competition numbering (1, 2, 2, 4). Inside a tie the
+display order is by display name (Spanish collation): display only, it never changes positions.
+Effectiveness is compared exactly (cross-multiplied integer counts), so equal ratios always tie.
 
 ## Podium
 
-- Top 3 eligible cashiers per view.
-- Eligible: ≥ 30 tickets **and** ≥ 1 aceptada in the view's period.
-- Ineligible cashiers stay in the ranking with a visible reason.
-- Vacant steps are shown empty.
-- Tied cashiers share a step; the podium is never enlarged.
+- Eligible: ≥ 30 tickets **and** ≥ 1 aceptada **and** calculable effectiveness, in the view.
+- Ineligible cashiers stay in the ranking with every applicable reason:
+
+  | Code             | Message                   |
+  | ---------------- | ------------------------- |
+  | `MIN_TICKETS`    | Menos de 30 tickets       |
+  | `NO_ACCEPTED`    | Sin sobreventas aceptadas |
+  | `NOT_CALCULABLE` | Efectividad no calculable |
+
+- Eligible cashiers are renumbered among themselves with the ranking comparator; steps 1–3
+  hold the cashiers at exactly that position. Tied cashiers share a step; the podium is never
+  enlarged.
+- Step status:
+
+  | Status           | When                                                    |
+  | ---------------- | ------------------------------------------------------- |
+  | `filled`         | At least one eligible cashier holds the position        |
+  | `covered-by-tie` | A tie above uses it up (two tied at 2nd → no 3rd)       |
+  | `vacant`         | Not enough eligible cashiers (shown empty; triggers O6) |
+
+## Observations
+
+Deterministic, built in the backend in neutral Spanish. Each one has a fact (numbers), a
+cautious interpretation and a recommendation; texts never attribute causes. Percentages use
+`es-AR` with two decimals (`18,87 %`); counts are integers.
+
+| Rule | Fires when                                                                                     | Per     |
+| ---- | ---------------------------------------------------------------------------------------------- | ------- |
+| O1   | Cashier on podium step 1 (every tied cashier)                                                  | Cashier |
+| O2   | Activadas ≥ the view's mean activadas per cashier **and** effectiveness < general (both calc.) | Cashier |
+| O3   | Best − worst calculable effectiveness ≥ 10 points (≥ 2 calculable cashiers)                    | View    |
+| O4   | Tickets < 30 **and** calculable effectiveness ≥ general                                        | Cashier |
+| O5   | Activadas > 0 **and** aceptadas = 0                                                            | Cashier |
+| O6   | At least one podium step `vacant` (`covered-by-tie` does not count)                            | View    |
+
+Order: by rule, then ranking order. O2 and O5 can both fire for the same cashier. Thresholds
+are compared exactly on integer counts.
 
 ## Validation
 
