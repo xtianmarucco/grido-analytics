@@ -47,7 +47,7 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 ## Tasks
 
 - [x] T1 `packages/shared`: new error codes, normalized shift, warning and import response schemas.
-- [ ] T2 `apps/api/src/import`: read workbook buffer → raw rows, header normalization, required columns.
+- [x] T2 `apps/api/src/import`: read workbook buffer → raw rows, header normalization, required columns.
 - [ ] T3 `apps/api/src/import`: row validation + normalization, duplicates, single-period check, warnings.
 - [ ] T4 `apps/api/src/http`: multer upload, limits, signature check, `POST /api/analysis`, error mapping.
 - [ ] T5 `apps/web/src/features/upload`: upload UI, states, preview table, warnings, replace file.
@@ -66,8 +66,9 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 
 - Engram mirror `odd/sprint-2-excel-import/tasks`: PENDING (host session registration could not be confirmed, 2026-11-02); resync when available.
 
-- T1 (delegated writer): RED `analysis.test.ts` failed (`Cannot find module './analysis.js'`); GREEN shared 19/19 passed, typecheck/lint/format clean. Commit: see T2 entry.
+- T1 (delegated writer): RED `analysis.test.ts` failed (`Cannot find module './analysis.js'`); GREEN shared 19/19 passed, typecheck/lint/format clean. Commit `d5525b6`.
+- T2 (delegated writer): exceljs 4.4.0 added; `pnpm audit --prod` = 2 moderate (uuid <11.1.1 buffer arg, minimatch via archiver/unzipper glob), no high/critical, none on the read path. RED `read-workbook.test.ts` failed (`Cannot find module './errors.js'`); first GREEN run 12/13 (ZIP without workbook reported EMPTY_FILE → fixed: no worksheet = UNREADABLE_FILE); GREEN api 30/30. Added ZIP central-directory guard (declared uncompressed size ≤ 64 MB) before exceljs inflates. Commit: see T3 entry.
 
 ## Next step
 
-- Implement T2.
+- Implement T3.
