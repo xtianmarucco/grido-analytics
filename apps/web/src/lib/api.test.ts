@@ -6,6 +6,7 @@ import {
   downloadReport,
   fetchHealth,
   fileNameFromDisposition,
+  isUserFacingError,
   uploadAnalysis,
 } from './api';
 
@@ -100,6 +101,48 @@ describe('uploadAnalysis', () => {
       status: 422,
       details: { missing: ['sv_aceptada'] },
     });
+  });
+});
+
+/** What Vercel answers when the request body exceeds its 4.5 MB limit: not the API envelope. */
+function platformTooLargeResponse(): Response {
+  return new Response('Request Entity Too Large\n\nFUNCTION_PAYLOAD_TOO_LARGE\n', {
+    status: 413,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  });
+}
+
+const TOO_LARGE = {
+  code: 'FILE_TOO_LARGE',
+  message: 'El archivo supera el tamaño máximo de 4 MB.',
+  status: 413,
+};
+
+describe('platform 413 (Vercel FUNCTION_PAYLOAD_TOO_LARGE)', () => {
+  it('maps a non-envelope 413 on upload to the Spanish "too large" error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(platformTooLargeResponse()));
+
+    const error = await uploadAnalysis(new File(['x'], 'turnos.xlsx')).catch((e: unknown) => e);
+
+    expect(error).toMatchObject(TOO_LARGE);
+    expect(isUserFacingError(error)).toBe(true);
+  });
+
+  it('maps an HTML 413 on report download the same way', async () => {
+    const html = new Response('<html><body>413</body></html>', {
+      status: 413,
+      headers: { 'Content-Type': 'text/html' },
+    });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(html));
+
+    await expect(
+      downloadReport({
+        file: new File(['PK'], 'a.xlsx'),
+        viewId: 'all',
+        format: 'pdf',
+        report: { label: 'Ambas sucursales', period: { from: '2026-10-19', to: '2026-10-25' } },
+      }),
+    ).rejects.toMatchObject(TOO_LARGE);
   });
 });
 

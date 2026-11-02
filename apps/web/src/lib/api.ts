@@ -3,8 +3,10 @@ import {
   analysisResponseSchema,
   ErrorCode,
   errorResponseSchema,
+  fileTooLargeMessage,
   healthResponseSchema,
   type HealthResponse,
+  MAX_UPLOAD_BYTES,
   type ReportFormat,
   reportFileName,
 } from '@grido/shared';
@@ -49,13 +51,20 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
-/** The error of a non-2xx response: the API envelope, or a network error. */
+/** The error of a non-2xx response: the API envelope, a platform 413, or a network error. */
 function rejection(response: Response, body: unknown): ApiError {
   // The Vite dev proxy answers 5xx with a non-JSON body when Express is down.
   const envelope = errorResponseSchema.safeParse(body);
   if (envelope.success) {
     const { code, message, details } = envelope.data.error;
     return new ApiError(code, message, response.status, details);
+  }
+  // Vercel answers bodies over 4.5 MB itself (`FUNCTION_PAYLOAD_TOO_LARGE`, text/HTML): same
+  // message as the API's own FILE_TOO_LARGE.
+  if (response.status === 413) {
+    return new ApiError(ErrorCode.FileTooLarge, fileTooLargeMessage(), 413, {
+      maxBytes: MAX_UPLOAD_BYTES,
+    });
   }
   return new ApiError(
     ClientErrorCode.NetworkError,

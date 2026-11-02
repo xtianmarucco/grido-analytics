@@ -4,7 +4,7 @@
 
 | ID  | Requirement                                                                         | Sprint |
 | --- | ----------------------------------------------------------------------------------- | ------ |
-| F-1 | Upload one weekly shift-close `.xlsx` (max 5 MB).                                   | 2      |
+| F-1 | Upload one weekly shift-close `.xlsx` (max 4 MB).                                   | 2      |
 | F-2 | Reject the file only if it is unreadable or a required column is missing.           | 2      |
 | F-3 | Process everything else, showing every excluded or merged row as a visible warning. | 2      |
 | F-4 | Compute SB effectiveness per cashier from consolidated weekly totals.               | 3      |

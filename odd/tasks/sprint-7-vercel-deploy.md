@@ -43,7 +43,7 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 ## Tasks
 
 - [x] T1 Vercel build layout + `vercel.json` + Express function entry.
-- [ ] T2 Upload limit 4 MB + platform 413 handling.
+- [x] T2 Upload limit 4 MB + platform 413 handling.
 - [ ] T3 Sprint 5 download/export follow-ups + test cleanup.
 - [ ] T4 `pnpm smoke <baseUrl>`.
 - [ ] T5 Docs (DEPLOYMENT, GUIA_DE_USO, README, DECISIONS, ARCHITECTURE).
@@ -62,6 +62,8 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 
 - T1 (delegated writer): RED `apps/api/src/index.test.ts` failed (no `src/index.ts`), GREEN 2/2. Layout: Vercel Root Directory `apps/api`, Express preset, entry `apps/api/src/index.ts` (default export of `createApp()`), `apps/api/vercel.json` (gru1, `functions["index.js"].maxDuration` 60, SPA rewrite), `pnpm run vercel-build` builds shared + web and copies `apps/web/dist` to `apps/api/public` (CDN). Local `npx vercel@latest build` (CLI 65.9.0, offline, hand-written `.vercel/project.json` in a scratch copy, no login/link) → `status: ok`; output: static `index.html` + `assets/`, one function `index.func` (runtime nodejs26.x, maxDuration 60, `packages/shared/dist`, pdfmake `vfs_fonts.js`, exceljs traced); materialized bundle answered `/api/health` 200. Found and fixed: Vercel's Node builder reads `apps/api/tsconfig.json` without `extends` and forces `strict: false` when `module` is missing → TS2345 in the build; `module`/`moduleResolution` now explicit. A `functions` key `src/index.ts` was silently ignored; `index.js` (the preset's function source) applies.
 
+- T2 (delegated writer): RED 5 tests (shared limit + message 2, API 413 at 4 MB + 1 byte, web non-envelope 413 on upload and download 2, "hasta 4 MB" copy). GREEN: `MAX_UPLOAD_MEGABYTES`/`MAX_UPLOAD_BYTES`/`fileTooLargeMessage` in `@grido/shared` used by multer and the web client; shared 55, api 222, web 92 tests pass. Upload copy now "se procesa al momento y no se guarda" (it no longer runs on the owner's machine once deployed). D-47/D-48 added; 5 MB references in docs updated.
+
 ## Next step
 
-- Implement T2.
+- Implement T3.

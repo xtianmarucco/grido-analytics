@@ -26,7 +26,7 @@ Everything happens in memory per request. Nothing is stored between requests.
 | No `file` field                                         | 400 `FILE_REQUIRED`         |
 | Several files, other field, malformed multipart         | 400 `INVALID_UPLOAD`        |
 | Name not `.xlsx`, text MIME type, no `PK\x03\x04` start | 415 `UNSUPPORTED_FILE_TYPE` |
-| Over 5 MB                                               | 413 `FILE_TOO_LARGE`        |
+| Over 4 MB                                               | 413 `FILE_TOO_LARGE`        |
 
 ## Workbook checks (whole file rejected, 422 unless noted)
 

@@ -182,13 +182,14 @@ describe('POST /api/analysis: upload rejections', () => {
     expectError(response, 415, ErrorCode.UnsupportedFileType);
   });
 
-  it('413 FILE_TOO_LARGE above 5 MB', async () => {
-    const big = Buffer.alloc(5 * 1024 * 1024 + 1, 0x41);
+  it('413 FILE_TOO_LARGE above 4 MB (below the 4.5 MB Vercel body limit)', async () => {
+    const big = Buffer.alloc(4 * 1024 * 1024 + 1, 0x41);
 
     const response = await upload(big);
 
     const error = expectError(response, 413, ErrorCode.FileTooLarge);
-    expect(error.message).toContain('5 MB');
+    expect(error.message).toBe('El archivo supera el tamaño máximo de 4 MB.');
+    expect(error.details).toEqual({ maxBytes: 4 * 1024 * 1024 });
   });
 });
 

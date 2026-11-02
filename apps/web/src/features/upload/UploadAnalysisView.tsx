@@ -1,4 +1,4 @@
-import type { ImportWarning } from '@grido/shared';
+import { type ImportWarning, MAX_UPLOAD_MEGABYTES } from '@grido/shared';
 import {
   AlertCircle,
   CheckCircle2,
@@ -49,8 +49,8 @@ export function UploadAnalysisView({ state, onFileSelected }: UploadAnalysisView
       <CardHeader>
         <CardTitle>Reporte semanal de turnos</CardTitle>
         <CardDescription>
-          Cargue el Excel de cierre de turnos (.xlsx, hasta 5 MB). El archivo se procesa en este
-          equipo y no se guarda.
+          Cargue el Excel de cierre de turnos (.xlsx, hasta {MAX_UPLOAD_MEGABYTES} MB). El archivo
+          se procesa al momento y no se guarda.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
