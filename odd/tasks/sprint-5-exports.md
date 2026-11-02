@@ -42,7 +42,7 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 - [x] T2 `apps/api/src/export/xlsx`: pure workbook builder (4 sheets) + tests reading it back.
 - [x] T3 `apps/api/src/export/pdf`: pure doc definition builder + pdfmake rendering to Buffer + tests.
 - [x] T4 `apps/api/src/http`: `/api/exports/pdf` and `/api/exports/xlsx` routes, headers, errors + supertest.
-- [ ] T5 `apps/web`: export buttons, states, download handling + component tests.
+- [x] T5 `apps/web`: export buttons, states, download handling + component tests.
 - [ ] T6 Docs.
 
 ## Routing
@@ -60,7 +60,8 @@ Out of scope: exporting all views in one file (user decision 2026-11-02: selecte
 - T2 (previous `1c5e042`): RED workbook tests failed (module missing), then a second RED caught Resumen counts formatted as percent; GREEN 6/6 export tests. Percent applied per effectiveness cell only. Shared report copy/format in `export/report-copy.ts`, `export/format.ts`.
 - T3 (previous `9083a26`): RED both PDF test files failed (modules missing); GREEN 18/18 export tests. `pdfmake` 0.3.13 + `@types/pdfmake` 0.3.3 (dev). Node API verified in the installed package: singleton `createPdf().getBuffer()`, `virtualfs` (untyped, local interface), `setUrlAccessPolicy`/`setLocalAccessPolicy` set to deny all; Roboto loaded from `pdfmake/build/vfs_fonts.js` into the in-memory vfs. Generation date uses server local time.
 - T4 (previous `ea9f8fe`): RED 14/14 new supertest cases failed (routes 404); GREEN api suite. Shared upload/import step extracted to `http/analyze-upload.ts` (analysis router unchanged in behavior). Order: file → ZIP signature → `view` schema → import → view lookup; both view failures are 400 `INVALID_VIEW`. Headers: Content-Type, `attachment; filename="…"` (ASCII by construction), `Cache-Control: no-store`, `nosniff`.
+- T5 (previous `28c18c3`): RED 12 new web tests failed (`downloadReport`, `fileNameFromDisposition`, `saveBlob`, `ReportDownloads` missing); GREEN web 75/75. `useMutation` per dashboard; one download at a time (both buttons disabled), `role="status"` only while generating so existing single-status queries stay valid; error alert shows API message for user-facing codes. `isUserFacingError` moved to `lib/api.ts` and reused by the upload. Fallback filename from shared `reportFileName`.
 
 ## Next step
 
-- Implement T5.
+- Implement T6.
