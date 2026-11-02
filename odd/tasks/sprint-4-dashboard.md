@@ -84,6 +84,10 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
 - Final verification (2026-11-02): `pnpm typecheck`, `lint`, `format:check`, `build` pass; tests shared 26, api 132, web 56. Built API on port 3002 serves the page; the real file returns 3 views (ranking counts 3/3/5; podium filled/filled/vacant, filled/filled/vacant, filled ×3; 0 warnings) matching the Sprint 0 podiums. Headless Chromium at 375 and 1280 px, each view: `scrollWidth == innerWidth`, 0 console errors, 0 non-local requests. Bundle URLs are library message strings only (redux error links, zod JSON-schema ids). Known: Vite warns the JS chunk is 726 kB (Recharts); acceptable for a local app, not split.
 - Engram mirror `odd/sprint-4-dashboard/tasks`: PENDING (host session registration failing in this session).
 
+- Parent spot check: screenshots 1280 px (Almirante) and 375 px (Ambas) reviewed — layout follows the guide (podium 2–1–3 desktop, stacked phone; ranking cards on phone; vacant step dashed).
+- Native review (2026-11-02): assessed medium (`executable_change` apps/web/index.html), review_due slice_budget_reached (3217 lines over 7a83e80..5e38bd9). Consent granted, but START stopped with `lens_context_budget_exceeded` (no authority created). Split into two candidates was offered; the user chose to review the sprint manually instead ("se ve muy bien"). No native receipt for this sprint.
+- Open: Vite chunk-size warning (726 kB, Recharts) — lazy-load the chart if desired.
+
 ## Next step
 
 - Review the dashboard; open the Sprint 4 PR (single PR per sprint).
