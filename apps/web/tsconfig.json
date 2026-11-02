@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    // `@/*` is the shadcn/ui alias. `@grido/shared` points at source so a clean checkout does not
+    // need `packages/shared/dist`. Both mirror `resolve.alias` in vite.config.ts.
+    "paths": {
+      "@/*": ["./src/*"],
+      "@grido/shared": ["../../packages/shared/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}
