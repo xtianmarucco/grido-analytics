@@ -4,7 +4,7 @@
 
 1. `nvm use` (Node 26) and `corepack enable` (pnpm 11.17).
 2. `pnpm install`
-3. `pnpm dev` → open `http://127.0.0.1:5173`. You should see "Conectado al servidor".
+3. `pnpm dev` → open `http://127.0.0.1:5173`. You should see "Conectado al servidor" in the header and the upload zone.
 
 ## Scripts (root)
 

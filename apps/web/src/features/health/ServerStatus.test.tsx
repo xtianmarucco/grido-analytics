@@ -30,12 +30,12 @@ function stubFetch(...results: Array<Response | Error>) {
 const ok = () => new Response(JSON.stringify(healthy), { status: 200 });
 
 describe('ServerStatus', () => {
-  it('shows the connected state with the API status', async () => {
+  it('shows the connected state with the last check time as a tooltip', async () => {
     stubFetch(ok());
     renderStatus();
 
-    expect(await screen.findByText('Conectado al servidor')).toBeInTheDocument();
-    expect(screen.getByText('ok')).toBeInTheDocument();
+    const badge = await screen.findByText('Conectado al servidor');
+    expect(badge).toHaveAttribute('title', expect.stringMatching(/^Última verificación: /));
   });
 
   it('shows a clear error with a retry button when the API is down', async () => {

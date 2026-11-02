@@ -3,8 +3,8 @@
 Local, offline app that turns the weekly Grido shift-close Excel into an upselling (SB)
 effectiveness ranking per cashier, with podium and PDF/Excel exports. No database, no login.
 
-> Sprint 1 status: foundations only. The API and web app run and talk to each other; Excel import
-> and analysis arrive in Sprints 2–3.
+> Sprint 2 status: upload the weekly Excel and preview the normalized shifts with warnings.
+> Ranking and podium arrive in Sprint 3.
 
 ## Quick start
 
@@ -19,14 +19,14 @@ Development: `pnpm dev`, then open `http://127.0.0.1:5173`.
 
 ## Approved business rules (Sprint 0)
 
-| Rule          | Summary                                                                                |
-| ------------- | -------------------------------------------------------------------------------------- |
-| Effectiveness | `aceptadas / (rechazadas + aceptadas) × 100` on weekly sums; never average percentages |
-| No activadas  | "No calculable", ranked last, not podium-eligible                                      |
-| Ranking       | Effectiveness ↓, then aceptadas ↓, then activadas ↓; ties share a position             |
-| Podium        | Top 3 eligible (≥ 30 tickets and ≥ 1 aceptada); ties share a step; never enlarged      |
-| Views         | Almirante, Barranqueras, both branches; cashier names case-insensitive                 |
-| Validation    | Reject only unreadable files or missing required columns; everything else warns        |
+| Rule          | Summary                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------- |
+| Effectiveness | `aceptadas / (rechazadas + aceptadas) × 100` on weekly sums; never average percentages  |
+| No activadas  | "No calculable", ranked last, not podium-eligible                                       |
+| Ranking       | Effectiveness ↓, then aceptadas ↓, then activadas ↓; ties share a position              |
+| Podium        | Top 3 eligible (≥ 30 tickets and ≥ 1 aceptada); ties share a step; never enlarged       |
+| Views         | Almirante, Barranqueras, both branches; cashier names case-insensitive                  |
+| Validation    | Reject unreadable files, missing columns, mixed periods; invalid rows excluded + warned |
 
 Full detail: [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md).
 
@@ -39,6 +39,8 @@ Full detail: [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md).
 | [ARCHITECTURE](docs/ARCHITECTURE.md)                 | Packages, folders, request flow     |
 | [BUSINESS_RULES](docs/BUSINESS_RULES.md)             | How effectiveness and podium work   |
 | [DATA_DICTIONARY](docs/DATA_DICTIONARY.md)           | Excel columns                       |
+| [BACKEND_RULES](docs/BACKEND_RULES.md)               | Import validation and normalization |
 | [API_CONTRACT](docs/API_CONTRACT.md)                 | Endpoints and error envelope        |
 | [DECISIONS](docs/DECISIONS.md)                       | Why things are the way they are     |
 | [DEVELOPMENT_WORKFLOW](docs/DEVELOPMENT_WORKFLOW.md) | Scripts, conventions, checks        |
+| [TESTING_STRATEGY](docs/TESTING_STRATEGY.md)         | Test layers and Excel fixtures      |
