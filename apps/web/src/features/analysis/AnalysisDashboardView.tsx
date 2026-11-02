@@ -21,6 +21,8 @@ export interface AnalysisDashboardViewProps {
   views: readonly AnalysisView[];
   importResult: ImportResult;
   onSelectView: (viewId: string) => void;
+  /** Locks the view selector (while a report of the selected view is generating). */
+  viewSelectionDisabled?: boolean;
   importedOpen: boolean;
   onImportedOpenChange: (open: boolean) => void;
   /** Report downloads for the selected view, shown under the view selector. */
@@ -36,6 +38,7 @@ export function AnalysisDashboardView({
   views,
   importResult,
   onSelectView,
+  viewSelectionDisabled = false,
   importedOpen,
   onImportedOpenChange,
   reportActions,
@@ -76,7 +79,12 @@ export function AnalysisDashboardView({
       {view && (
         <>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <ViewSelector views={views} selectedId={view.id} onSelect={onSelectView} />
+            <ViewSelector
+              views={views}
+              selectedId={view.id}
+              onSelect={onSelectView}
+              disabled={viewSelectionDisabled}
+            />
             <p className="text-sm text-muted-foreground tabular-nums">
               {formatPeriod(view.summary.period)}
             </p>

@@ -2,7 +2,8 @@
 
 Grido Analytics turns the weekly shift-close Excel of a Grido ice-cream franchise into an upselling
 (SB, _sobreventa_) effectiveness report per cashier: ranking, podium, observations, and PDF/Excel
-exports. It runs on the owner's own computer, offline, with no database and no login.
+exports. It runs on Vercel (see [DEPLOYMENT.md](DEPLOYMENT.md)) or on the owner's own computer
+(`pnpm start`), with no database and no login.
 
 ## Who it is for
 

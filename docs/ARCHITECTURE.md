@@ -1,7 +1,8 @@
 # Architecture
 
-One Node process in production: Express serves the API under `/api` and the built React app for
-everything else, on `127.0.0.1:3001`. Same origin everywhere, so there is no CORS.
+Two production topologies, same code and same origin (no CORS): **local** (one Node process on
+`127.0.0.1:3001`, Express serves `/api` and the built React app) and **Vercel** (CDN serves the
+web build, Express runs as one Vercel Function for `/api/*`; see [Deployment](#deployment-vercel)).
 
 ```text
 Browser ──► 127.0.0.1:3001 ──► Express ──┬─ /api/*  → routers → analysis (pure functions)
@@ -25,6 +26,7 @@ Dev:  Browser ──► 127.0.0.1:5173 (Vite) ──/api proxy──► 127.0.0.
 | `http/`     | `createApp`, routers, error envelope, static web serving                              | Sprint 1     |
 | `config.ts` | Env parsing (`HOST`, `PORT`, `NODE_ENV`)                                              | Sprint 1     |
 | `server.ts` | Composition root: config, web build detection, `listen`                               | Sprint 1     |
+| `index.ts`  | Vercel Function entry: default export of `createApp()`, no `listen`, no static files  | Sprint 7     |
 | `import/`   | Excel reading (exceljs), row validation and normalization → shifts + warnings. Pure.  | Sprint 2     |
 | `analysis/` | Pure business functions: views, totals, ranking, podium, observations. No Express.    | Sprint 3     |
 | `export/`   | Pure report builders: PDF doc definition (pdfmake) and workbook (exceljs) of one view | Sprint 5     |
@@ -77,6 +79,19 @@ UploadAnalysis (container: selected File + upload mutation)
 `server.ts` serves the web build when `apps/web/dist/index.html` exists (override the folder with
 `WEB_DIST_DIR`). `pnpm start` always builds first, so it always serves the web app. Reason in
 [DECISIONS.md](DECISIONS.md) (D-6).
+
+## Deployment (Vercel)
+
+```text
+Browser ──► <project>.vercel.app ──┬─ static file (apps/api/public = copied web build) → CDN
+                                   ├─ /api/*  → Vercel Function apps/api/src/index.ts → createApp()
+                                   └─ other   → /index.html (vercel.json rewrite)
+```
+
+Vercel project Root Directory `apps/api`, Express preset, region `gru1`. `pnpm run vercel-build`
+builds `@grido/shared` and `@grido/web` and copies the web build into `apps/api/public`. The
+function is stateless like the local server: each request carries the Excel; nothing is stored.
+Settings, limits and the first-deploy checklist: [DEPLOYMENT.md](DEPLOYMENT.md) (D-47, D-48).
 
 ## Request lifecycle
 

@@ -1,12 +1,10 @@
 import path from 'node:path';
 
-import { ErrorCode } from '@grido/shared';
+import { ErrorCode, fileTooLargeMessage, MAX_UPLOAD_BYTES } from '@grido/shared';
 import type { RequestHandler } from 'express';
 import multer from 'multer';
 
 import { HttpError } from './errors.js';
-
-export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 /** MIME types browsers and CLI tools send for `.xlsx`. Anything else is rejected. */
 const ACCEPTED_MIME_TYPES = new Set([
@@ -58,13 +56,9 @@ export function xlsxUpload(maxBytes: number = MAX_UPLOAD_BYTES): RequestHandler 
 function toHttpError(error: unknown, maxBytes: number): HttpError {
   if (error instanceof HttpError) return error;
   if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
-    const megabytes = Math.round(maxBytes / (1024 * 1024));
-    return new HttpError(
-      413,
-      ErrorCode.FileTooLarge,
-      `El archivo supera el tamaño máximo de ${megabytes} MB.`,
-      { maxBytes },
-    );
+    return new HttpError(413, ErrorCode.FileTooLarge, fileTooLargeMessage(maxBytes), {
+      maxBytes,
+    });
   }
   // Other limits, unexpected fields and malformed multipart bodies are client errors.
   return new HttpError(

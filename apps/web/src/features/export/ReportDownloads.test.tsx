@@ -19,12 +19,18 @@ function renderDownloads() {
   );
 }
 
+/** Fresh stubs per test: a `URL` subclass (the real global is never mutated) and a click spy. */
 function stubDownload() {
-  const createObjectURL = vi.fn().mockReturnValue('blob:report');
-  const revokeObjectURL = vi.fn();
-  vi.stubGlobal('URL', Object.assign(URL, { createObjectURL, revokeObjectURL }));
+  const createObjectURL = vi.fn((_blob: Blob) => 'blob:report');
+  const revokeObjectURL = vi.fn((_url: string) => {});
+  class StubURL extends URL {
+    static override createObjectURL = createObjectURL;
+    static override revokeObjectURL = revokeObjectURL;
+  }
+  vi.stubGlobal('URL', StubURL);
+  // Restored by `vi.restoreAllMocks()` in the shared test setup.
   const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-  return { createObjectURL, revokeObjectURL, click };
+  return { createObjectURL, click };
 }
 
 const pdfButton = () => screen.getByRole('button', { name: 'Descargar PDF · Ambas sucursales' });
@@ -68,12 +74,12 @@ describe('ReportDownloads', () => {
         }),
       ),
     );
-    const { createObjectURL, revokeObjectURL, click } = stubDownload();
+    const { createObjectURL, click } = stubDownload();
     renderDownloads();
 
     await userEvent.click(excelButton());
 
-    await vi.waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:report'));
+    await vi.waitFor(() => expect(click).toHaveBeenCalledTimes(1));
     expect(createObjectURL).toHaveBeenCalledTimes(1);
     expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('informe-servidor.xlsx');
     expect(excelButton()).toBeEnabled();

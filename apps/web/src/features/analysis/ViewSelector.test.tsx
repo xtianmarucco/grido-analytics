@@ -30,4 +30,10 @@ describe('ViewSelector', () => {
 
     expect(onSelect).toHaveBeenCalledWith('branch-2');
   });
+
+  it('disables every option when asked', () => {
+    render(<ViewSelector views={views} selectedId="all" onSelect={() => {}} disabled />);
+
+    for (const radio of screen.getAllByRole('radio')) expect(radio).toBeDisabled();
+  });
 });

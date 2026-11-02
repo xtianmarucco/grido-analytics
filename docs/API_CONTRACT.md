@@ -31,7 +31,7 @@ Every non-2xx response:
 | `FILE_REQUIRED`         | 400    | No `file` field (or not a multipart body)                          | —                                           |
 | `INVALID_UPLOAD`        | 400    | Malformed multipart, more than one file, file in another field     | —                                           |
 | `UNSUPPORTED_FILE_TYPE` | 415    | Not `.xlsx`: extension, MIME type or ZIP signature (`PK\x03\x04`)  | —                                           |
-| `FILE_TOO_LARGE`        | 413    | Upload over 5 MB, or declared uncompressed content over 64 MB      | `{ maxBytes }` / `{ maxUncompressedBytes }` |
+| `FILE_TOO_LARGE`        | 413    | Upload over 4 MB, or declared uncompressed content over 64 MB      | `{ maxBytes }` / `{ maxUncompressedBytes }` |
 | `UNREADABLE_FILE`       | 422    | Corrupt ZIP, or a ZIP without a worksheet                          | —                                           |
 | `EMPTY_FILE`            | 422    | Empty first worksheet, or header without data rows                 | —                                           |
 | `MISSING_COLUMNS`       | 422    | Required columns absent                                            | `{ missing: string[] }`                     |
@@ -54,7 +54,7 @@ Schema: `healthResponseSchema`.
 
 ## POST /api/analysis
 
-- Body: `multipart/form-data`, one file in field `file`: `.xlsx`, max 5 MB. Held in memory
+- Body: `multipart/form-data`, one file in field `file`: `.xlsx`, max 4 MB. Held in memory
   (multer `memoryStorage`); nothing is written to disk.
 - Accepted MIME types: the `.xlsx` type, `application/octet-stream`, `application/zip`,
   `application/x-zip-compressed`, or empty. The bytes must start with the ZIP signature.

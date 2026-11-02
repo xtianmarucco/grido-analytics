@@ -81,6 +81,7 @@ describe('UploadAnalysis', () => {
     expect(input).toHaveAttribute('type', 'file');
     expect(input).toHaveAttribute('accept', expect.stringContaining('.xlsx'));
     expect(screen.getByText(/arrastre el archivo/i)).toBeInTheDocument();
+    expect(screen.getByText(/\(\.xlsx, hasta 4 MB\)/)).toBeInTheDocument();
   });
 
   it('uploads the selected file and shows the processing state', async () => {

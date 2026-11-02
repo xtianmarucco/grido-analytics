@@ -8,15 +8,16 @@
 
 ## Scripts (root)
 
-| Script              | Does                                                                     |
-| ------------------- | ------------------------------------------------------------------------ |
-| `pnpm dev`          | API (`tsx watch`, :3001) and web (Vite, :5173) in parallel               |
-| `pnpm start`        | Build everything, then run the compiled API serving the web app on :3001 |
-| `pnpm build`        | Build shared → api → web                                                 |
-| `pnpm test`         | Vitest in every package                                                  |
-| `pnpm typecheck`    | `tsc --noEmit` in every package                                          |
-| `pnpm lint`         | ESLint (flat config; `apps/web` adds React rules)                        |
-| `pnpm format:check` | Prettier check (`pnpm format` to fix)                                    |
+| Script              | Does                                                                         |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `pnpm dev`          | API (`tsx watch`, :3001) and web (Vite, :5173) in parallel                   |
+| `pnpm start`        | Build everything, then run the compiled API serving the web app on :3001     |
+| `pnpm build`        | Build shared → api → web                                                     |
+| `pnpm test`         | Vitest in every package                                                      |
+| `pnpm typecheck`    | `tsc --noEmit` in every package                                              |
+| `pnpm lint`         | ESLint (flat config; `apps/web` adds React rules)                            |
+| `pnpm format:check` | Prettier check (`pnpm format` to fix)                                        |
+| `pnpm smoke [url]`  | Deployment smoke test against a running server ([DEPLOYMENT](DEPLOYMENT.md)) |
 
 ## Before committing
 

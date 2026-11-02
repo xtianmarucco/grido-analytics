@@ -2,6 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "types": ["node"],
+    // Repeated from the base config on purpose: Vercel's Node builder reads this file without
+    // `extends` and, when `module` is missing here, compiles with `strict: false` (which breaks
+    // type inference and fails the deployment build).
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     // Type-check against the shared package's source so a clean checkout does not need
     // `packages/shared/dist`. The build config drops this mapping and uses the built package.
     "paths": {

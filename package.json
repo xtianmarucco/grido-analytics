@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "test": "pnpm -r --if-present test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "smoke": "node apps/api/scripts/smoke.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

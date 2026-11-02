@@ -10,7 +10,7 @@ export const ErrorCode = {
   InvalidUpload: 'INVALID_UPLOAD',
   /** 415: not an `.xlsx` (extension, MIME type or ZIP signature). */
   UnsupportedFileType: 'UNSUPPORTED_FILE_TYPE',
-  /** 413: upload over 5 MB, or workbook content too large once uncompressed. */
+  /** 413: upload over `MAX_UPLOAD_BYTES`, or workbook content too large once uncompressed. */
   FileTooLarge: 'FILE_TOO_LARGE',
   /** 422: the workbook cannot be read (corrupt or not a spreadsheet). */
   UnreadableFile: 'UNREADABLE_FILE',
@@ -29,6 +29,21 @@ export const ErrorCode = {
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+
+/**
+ * Upload limit in megabytes. Vercel rejects request bodies over 4.5 MB before they reach the API
+ * (`413 FUNCTION_PAYLOAD_TOO_LARGE`), so 4 MB leaves room for the multipart overhead.
+ */
+export const MAX_UPLOAD_MEGABYTES = 4;
+
+/** Upload limit in bytes; the single source for the API check and the web copy. */
+export const MAX_UPLOAD_BYTES = MAX_UPLOAD_MEGABYTES * 1024 * 1024;
+
+/** The Spanish `FILE_TOO_LARGE` message, shared by the API and the web client's platform 413. */
+export function fileTooLargeMessage(maxBytes: number = MAX_UPLOAD_BYTES): string {
+  const megabytes = Math.round(maxBytes / (1024 * 1024));
+  return `El archivo supera el tamaño máximo de ${megabytes} MB.`;
+}
 
 /** Body of every non-2xx API response: `{ error: { code, message, details? } }`. */
 export const errorResponseSchema = z.object({
