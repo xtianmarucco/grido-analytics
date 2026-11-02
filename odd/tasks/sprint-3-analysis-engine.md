@@ -75,6 +75,10 @@ Out of scope: dashboard UI, charts, exports, persistence, historical comparisons
 - Manual real-file check (built API on :3002, numbers only): Almirante 3 cashiers, 459/419/41, podium 18.87 % / 0.578 % / vacant; Barranqueras 3 cashiers, 714/670/5, podium 1.087 % / 0.590 % / vacant; all 5 cashiers (merged cashier 98/89/0), podium 18.87 % / 1.087 % / 0.590 %. Matches Sprint 0.
 - Engram mirror `odd/sprint-3-analysis-engine/tasks`: PENDING (host session registration failing in this session).
 
+- Parent spot check: real file on a fresh :3002 server → podiums match Sprint 0 (branch-1: filled, filled, vacant; branch-2: filled, filled, vacant; all: 3 filled); observation texts read correctly in Spanish.
+- Native review (2026-11-02): medium (`executable_change`), review_due slice_budget_reached (1803 lines over 7890692..HEAD). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-a8db07ab42c9b331). Advisory: R3-tied-top-interpretation-untested (`observations.ts:66`), R3-shared-fixture-o6-text-drift (`packages/shared/src/analysis.test.ts:109`).
+- Product questions raised by the parent: (a) a podium cashier can also receive O2 in the combined view (step 2 and O2 for the same person); (b) O2 and O5 can both fire for the same cashier (agent note).
+
 ## Next step
 
 - Sprint 3 complete; native review (RDD) and PR are the parent's/user's decisions.
