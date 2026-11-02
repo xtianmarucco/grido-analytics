@@ -1,10 +1,11 @@
 # Grido Analytics
 
-Local, offline app that turns the weekly Grido shift-close Excel into an upselling (SB)
-effectiveness ranking per cashier, with podium and PDF/Excel exports. No database, no login.
+Web app that turns the weekly Grido shift-close Excel into an upselling (SB) effectiveness ranking
+per cashier, with podium and PDF/Excel exports. No database, no login. Runs locally
+(`pnpm start`) or on Vercel ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
-> Sprint 5 status: upload the weekly Excel, see the dashboard per view and download the selected
-> view's report as PDF or Excel.
+> Sprint 7 status: deployable on Vercel (web on the CDN, API as one function); uploads up to 4 MB.
+> User guide in Spanish: [docs/GUIA_DE_USO.md](docs/GUIA_DE_USO.md).
 
 ## Quick start
 
@@ -13,14 +14,15 @@ Requirements: Node 26, pnpm 11.17 (`corepack enable`).
 ```bash
 pnpm install
 pnpm start        # builds and serves http://127.0.0.1:3001
+pnpm smoke        # checks a running server (default http://127.0.0.1:3001)
 ```
 
 Development: `pnpm dev`, then open `http://127.0.0.1:5173`.
 
 ## How to use
 
-1. Open the app and choose (or drop) the weekly shift-close `.xlsx`. It is processed on this
-   computer and never stored.
+1. Open the app and choose (or drop) the weekly shift-close `.xlsx` (up to 4 MB). It is processed
+   by the app's server for that request only and never stored.
 2. The dashboard opens on **Ambas sucursales**; switch to Almirante or Barranqueras with the
    **Vista** selector (no re-upload).
 3. Read top to bottom: summary cards, podium, observations (Dato / Interpretación /
@@ -31,7 +33,7 @@ Development: `pnpm dev`, then open `http://127.0.0.1:5173`.
    above the views links to it).
 5. **Descargar PDF · {vista}** / **Descargar Excel · {vista}** (under the view selector) download
    the report of the selected view, e.g. `grido-informe-ambas-sucursales-2026-10-19-al-2026-10-25.pdf`.
-   The file is re-sent and recomputed by the local server; nothing is stored. The PDF is A4 and
+   The file is re-sent and recomputed by the server; nothing is stored. The PDF is A4 and
    printable; the Excel has the sheets Resumen, Ranking, Podio, Observaciones and Control de caja.
 6. **Analizar otro archivo** replaces the whole result.
 
@@ -56,6 +58,8 @@ Full detail: [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md).
 | [PROJECT_OVERVIEW](docs/PROJECT_OVERVIEW.md)         | What and for whom; roadmap          |
 | [REQUIREMENTS](docs/REQUIREMENTS.md)                 | Functional and non-functional needs |
 | [ARCHITECTURE](docs/ARCHITECTURE.md)                 | Packages, folders, request flow     |
+| [DEPLOYMENT](docs/DEPLOYMENT.md)                     | Vercel settings, smoke test         |
+| [GUIA_DE_USO](docs/GUIA_DE_USO.md)                   | User guide for the owner (Spanish)  |
 | [BUSINESS_RULES](docs/BUSINESS_RULES.md)             | How effectiveness and podium work   |
 | [DATA_DICTIONARY](docs/DATA_DICTIONARY.md)           | Excel columns                       |
 | [BACKEND_RULES](docs/BACKEND_RULES.md)               | Import validation and normalization |

@@ -46,7 +46,7 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 - [x] T2 Upload limit 4 MB + platform 413 handling.
 - [x] T3 Sprint 5 download/export follow-ups + test cleanup.
 - [x] T4 `pnpm smoke <baseUrl>`.
-- [ ] T5 Docs (DEPLOYMENT, GUIA_DE_USO, README, DECISIONS, ARCHITECTURE).
+- [x] T5 Docs (DEPLOYMENT, GUIA_DE_USO, README, DECISIONS, ARCHITECTURE).
 
 ## Routing
 
@@ -68,6 +68,15 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 
 - T4 (delegated writer): `apps/api/scripts/smoke.mjs` (inside `apps/api` so `exceljs` resolves from the API's dependencies; no new packages), root `pnpm smoke [baseUrl]`, optional `VERCEL_PROTECTION_BYPASS` → `x-vercel-protection-bypass`. No unit RED (a network script; exception): verified functionally. `PORT=3002 node apps/api/dist/server.js` + `pnpm smoke http://127.0.0.1:3002` → 5/5 ok, exit 0; against a closed port → 5 FAIL, exit 1; against the materialized Vercel function bundle from `vercel build` → 4/4 API checks ok (PDF 31 KB, xlsx 5 sheets), `GET /` 404 as expected (the CDN serves the page on Vercel).
 
+- T5 (delegated writer): passive docs, structural readback + `pnpm format:check` (no RED applies). `docs/DEPLOYMENT.md` (layout, settings table, `vercel.json`, Vercel Authentication + Hobby/Pro note, first-deploy checklist, `pnpm smoke` incl. `VERCEL_PROTECTION_BYPASS`, source URLs), `docs/GUIA_DE_USO.md` (neutral Spanish), README links/status, ARCHITECTURE deployment section, DECISIONS D-49/D-50 (D-47/D-48 in T2), REQUIREMENTS NF-1/NF-2, PROJECT_OVERVIEW, DEVELOPMENT_WORKFLOW `pnpm smoke`.
+
+## Pending on the owner's first real deploy
+
+- Region `gru1` and max duration 60 s shown in the deployment's Functions tab.
+- Install step with pnpm 11 (`ENABLE_EXPERIMENTAL_COREPACK=1` recommended), Node 26.
+- CDN + rewrite routing, platform 413 above 4.5 MB, Vercel Authentication, `pnpm smoke https://<url>`.
+- Downloads in Safari and Firefox (acceptance 4).
+
 ## Next step
 
-- Implement T5.
+- Owner: create the Vercel project with the settings in `docs/DEPLOYMENT.md` and run the first-deploy checklist. Then native review / PR.

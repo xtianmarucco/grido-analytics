@@ -15,15 +15,15 @@
 
 ## Non-functional
 
-| ID   | Requirement                                                                   |
-| ---- | ----------------------------------------------------------------------------- |
-| NF-1 | Works fully offline: no CDN fonts, scripts, or styles at runtime.             |
-| NF-2 | Reachable only from the same computer (binds `127.0.0.1`).                    |
-| NF-3 | One command to run (`pnpm start`) and one URL (`http://127.0.0.1:3001`).      |
-| NF-4 | No data is persisted: the uploaded file lives in memory for one request only. |
-| NF-5 | Errors never expose stack traces or internal messages to the browser.         |
-| NF-6 | No real employee names in the repository; tests use anonymized fixtures.      |
-| NF-7 | UI copy in neutral professional Spanish.                                      |
+| ID   | Requirement                                                                                                                                                   |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NF-1 | No third-party CDN fonts, scripts or styles at runtime; local mode works fully offline.                                                                       |
+| NF-2 | Local mode: reachable only from the same computer (binds `127.0.0.1`). On Vercel, access is limited with Vercel Authentication ([DEPLOYMENT](DEPLOYMENT.md)). |
+| NF-3 | One command to run (`pnpm start`) and one URL (`http://127.0.0.1:3001`).                                                                                      |
+| NF-4 | No data is persisted: the uploaded file lives in memory for one request only.                                                                                 |
+| NF-5 | Errors never expose stack traces or internal messages to the browser.                                                                                         |
+| NF-6 | No real employee names in the repository; tests use anonymized fixtures.                                                                                      |
+| NF-7 | UI copy in neutral professional Spanish.                                                                                                                      |
 
 ## Sprint 1 acceptance
 
