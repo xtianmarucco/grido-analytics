@@ -83,6 +83,12 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 - Native review (2026-11-02): medium (`executable_change` .gitignore), review_due slice_budget_reached (1023 lines over eac2c68..146f178). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-460295d3fe1daac2). Findings: R3-deferred-revoke-timer-leak (WARNING, `apps/web/src/lib/download.ts:20`), R3-vacuous-url-global-test (`download.test.ts:61-66`).
 - T6 (inline, parent): RED `vitest run src/lib/download.test.ts` → 1 failed (deferred revoke hit the restored global). GREEN: web 96/96; `pnpm typecheck|lint|format:check|test|build` ok.
 
+- Sprint 7 closed by the user on 2026-11-02. Upload copy "El archivo se procesa al momento y no se guarda." kept. Delivery: single push of `feat/sprint-7-vercel-deploy` (stacked on PR #6); PR opened by the user on GitHub.
+
+## Status
+
+Closed.
+
 ## Next step
 
-- Owner: create the Vercel project with the settings in `docs/DEPLOYMENT.md` and run the first-deploy checklist. Then native review / PR.
+- Owner merges PR #6 and #7, connects the repo in Vercel per `docs/DEPLOYMENT.md`, enables Vercel Authentication, then `pnpm smoke <url>` against the deployment; Safari/Firefox download check by the owner.
