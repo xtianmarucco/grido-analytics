@@ -82,6 +82,13 @@ Out of scope: dashboard UI, charts, exports, persistence, historical comparisons
 
 - T8 (inline, one-condition change + test + docs): user decision 2026-11-02 — (a) keep O2 for podium cashiers; (b) O2 only with ≥ 1 aceptada. RED: `vitest run src/analysis/observations.test.ts` → 1 failed (O2 fired for zero-aceptadas cashier). GREEN: api 132/132; `pnpm typecheck|lint|format:check|test|build` ok. Docs: BUSINESS_RULES O2 row + note, DECISIONS D-33.
 
+- T8 assess (base 9858756): medium, review_due false, under_budget (41 lines).
+- Sprint 3 closed by the user on 2026-11-02. PR #2 merged as eb56bdb, so this branch targets `main` directly. Delivery: single push; PR opened by the user on GitHub.
+
+## Status
+
+Closed.
+
 ## Next step
 
-- Sprint 3 complete; native review (RDD) and PR are the parent's/user's decisions.
+- Sprint 4 (dashboard and visualizations) planning; start with the UI/UX design guide.
