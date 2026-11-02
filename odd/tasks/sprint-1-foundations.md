@@ -66,6 +66,11 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - T6 (delegated writer): `docs/` PROJECT_OVERVIEW, REQUIREMENTS, ARCHITECTURE, BUSINESS_RULES, DATA_DICTIONARY, API_CONTRACT, DECISIONS (D-1..D-17, incl. Spanish UI copy D-7 and web-dist detection D-6), DEVELOPMENT_WORKFLOW, plus README with Sprint 0 rules. Structural check: `pnpm format:check` ok. Passive docs, no RED. Commit hash recorded in the final docs(odd) commit.
 - Final verification (2026-11-02): `pnpm install` exit 0; `pnpm typecheck` exit 0; `pnpm lint` exit 0; `pnpm format:check` exit 0; `pnpm test` exit 0 (shared 7, api 15, web 8); `pnpm build` exit 0; `pnpm start` → `/api/health` 200 JSON ok, `/api/nope` 404, `/` contains "Grido Analytics" (1 match), listening on 127.0.0.1:3001 only; CDN grep over `apps/web/dist` + `index.html`: no matches.
 
+- Native review (2026-11-02): assessed medium (`configuration_change` .env.example), `review_due: slice_budget_reached` over 4e0de7f..6357b0b. Consent granted. Lens: review-reliability. Outcome: approved, acknowledged, authority burned (lineage review-893fdce0403195e8). Reviewed boundary advances to 6357b0b.
+- Parent spot check: `pnpm test` → shared 7/7, api 15/15, web 8/8 passed.
+- Advisory follow-ups (non-blocking): R3-empty-web-dist-dir (WARNING, `apps/api/src/server.ts:12`: empty `WEB_DIST_DIR` resolves to cwd); R3-composition-root-untested (`server.ts:11-17`); R3-spa-fallback-edges-untested (`static-web.ts:30-41`); R3-non-json-4xx-as-network (`apps/web/src/lib/api.ts:39-49`).
+- Open: pnpm 11 added `minimumReleaseAgeExclude` entries (globals, @tanstack/*) in `pnpm-workspace.yaml`; user decision pending.
+
 ## Next step
 
-- Parent: native review/delivery decision; chain strategy before PR planning (forecast exceeded ~400 lines).
+- Decide on advisory follow-up T7 (WARNING fix), release-age exclusions, and PR chain strategy (~1.5k authored lines > ~400).
