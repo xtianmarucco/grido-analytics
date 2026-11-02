@@ -75,6 +75,10 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 - Final verification (2026-11-02): install ok; typecheck/lint/format:check/build pass; tests shared 19, api 71, web 21 (all pass); audit --prod 2 moderate (uuid, minimatch; transitive via exceljs, not on the read path).
 - Live check (`PORT=3002 pnpm start`; port 3001 was held by a pre-existing server process not started in this session): real file → 28 shifts, 2 branches, period 2026-10-19..2026-10-25, 0 warnings; renamed .txt→.xlsx 415, .txt 415, .csv 415, no file 400, 6 MB 413 — all with Spanish messages. Acceptance criteria 1–6 met (5: multer memoryStorage, no disk writes).
 
+- Parent spot check: fresh server on :3002 with the real file → 28 shifts, Almirante 14 / Barranqueras 14, period 2026-10-19..2026-10-25, 0 warnings, summary 28/28/0.
+- Native review (2026-11-02): assessed medium (`configuration_change` apps/api/package.json), review_due slice_budget_reached (4403 lines over 270cfd6..HEAD). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-69e24456b984851b).
+- Advisory follow-ups (non-blocking): R3-wallclock-invalid-date-throws (WARNING, `apps/api/src/import/cell-values.ts:53-57`: out-of-range numeric date serial yields Invalid Date not caught); R3-period-check-ignores-row-validity (`normalize-shifts.ts:62-68`); R3-http-mapping-untested (`analysis-router.ts:9-17`: FILE_TOO_LARGE from ZIP guard and TOO_MANY_ROWS lack supertest coverage).
+
 ## Next step
 
 - Owner review of the branch; push and PR are the owner's decisions. Resync the Engram mirror (still PENDING from the writer's side).
