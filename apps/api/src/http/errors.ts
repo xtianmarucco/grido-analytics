@@ -20,9 +20,12 @@ function errorBody(code: string, message: string, details?: unknown): ErrorRespo
 
 /** Catch-all for routes nobody handled. Mounted after every router. */
 export const notFoundHandler: RequestHandler = (req, res) => {
-  res
-    .status(404)
-    .json(errorBody(ErrorCode.NotFound, 'Route not found', { method: req.method, path: req.path }));
+  res.status(404).json(
+    errorBody(ErrorCode.NotFound, 'Route not found', {
+      method: req.method,
+      path: req.baseUrl + req.path,
+    }),
+  );
 };
 
 /**

@@ -42,8 +42,8 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - [x] T1 Monorepo root: workspace, base tsconfig, ESLint, Prettier, `.gitignore`, `.env.example`, root scripts. (commit c761a46)
 - [x] T2 `packages/shared`: error envelope + health zod schemas and types, with unit tests. (commit a5ab8c8)
 - [x] T3 `apps/api`: Express app on 127.0.0.1, `/api/health`, API 404, error handler; supertest tests (RED first). (commit 79baf12)
-- [x] T4 `apps/web`: Vite + React + Tailwind v4 + shadcn/ui + @fontsource + TanStack Query health status with connected/error states.
-- [ ] T5 Production mode: Express serves `apps/web/dist` with SPA fallback; `pnpm start` builds and runs one process.
+- [x] T4 `apps/web`: Vite + React + Tailwind v4 + shadcn/ui + @fontsource + TanStack Query health status with connected/error states. (commit 91f32c8)
+- [x] T5 Production mode: Express serves `apps/web/dist` with SPA fallback; `pnpm start` builds and runs one process.
 - [ ] T6 Docs: `/docs` set listed in scope + README with Sprint 0 approved rules.
 
 ## Routing
@@ -62,7 +62,8 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - T2 (delegated writer): `@grido/shared` with `errorResponseSchema` (+ `ErrorCode`) and `healthResponseSchema`. RED: `pnpm --filter @grido/shared test` failed (2 files, modules missing). GREEN: 7/7 tests pass; `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, shared `build` ok. Commit hash recorded in the next task commit.
 - T3 (delegated writer): `@grido/api` with `parseConfig` (HOST default 127.0.0.1, PORT default 3001), `createApp`, `/api/health`, `notFoundHandler`, `createErrorHandler` + `HttpError`, `server.ts`. RED: `pnpm --filter @grido/api test` failed (modules missing). GREEN: 9/9 tests (health 200 + schema, no x-powered-by, 404 NOT_FOUND, sync/async 500 INTERNAL_ERROR without leaking message/stack, HttpError mapping, config defaults/invalid port). typecheck, lint, format:check, build ok; compiled server smoke: health JSON and 404 envelope on 127.0.0.1.
 - T4 (delegated writer): `@grido/web` with Vite 8, React 19, Tailwind v4, shadcn/ui (manual setup, `components.json`; button, card, alert, badge), `@fontsource-variable/inter`, TanStack Query `useHealth` + container/presentational `ServerStatus`, `lib/api.ts` (`fetchHealth`, `ApiError`). UI copy in Spanish (see DECISIONS). Tests: 8/8 (api client: ok, network failure, non-JSON 502, envelope, invalid body; ServerStatus: connected, error + retry button, recovery after retry). typecheck, lint, format:check, build ok. Dev smoke: `pnpm dev` → `GET http://127.0.0.1:5173/api/health` proxied to Express. pnpm 11 auto-added `minimumReleaseAgeExclude` entries for `globals` and `@tanstack/*` (releases newer than the release-age policy).
+- T5 (delegated writer): `createStaticWebRouter` (hashed `/assets` cached 1y immutable, missing asset → JSON 404, SPA fallback for HTML GET/HEAD outside `/api`, `index.html` no-cache); `/api/*` 404 mounted before static. Production mode = `apps/web/dist/index.html` exists (override `WEB_DIST_DIR`), chosen over `NODE_ENV` so `pnpm start` works on Windows without env tooling. RED: 3 failing static tests; GREEN: api 15/15. Smoke via `pnpm start`: health JSON, `/api/nope` 404, `/` and `/foo/bar` contain "Grido Analytics".
 
 ## Next step
 
-- Implement T5.
+- Implement T6.
