@@ -48,7 +48,7 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
 - [x] T4 Podium.
 - [x] T5 Ranking table.
 - [x] T6 Observations.
-- [ ] T7 Effectiveness chart.
+- [x] T7 Effectiveness chart.
 - [ ] T8 Upload → results flow, collapsible import preview.
 - [ ] T9 Docs.
 
@@ -78,8 +78,9 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
 - T4 (previous commit `6dedc40`): `Podium` — API steps in DOM order 1, 2, 3 (`<ol>`), visual 2 – 1 – 3 with CSS `order` from `md`, stacked on phone; filled (metal fill, medal, name, effectiveness, "N aceptadas de M activadas"), tie (all names, "Empate" badge, shared text), covered-by-tie (names the nearest filled step above), vacant (explanation), requirements caption. RED: missing module; GREEN: 4/4 podium tests, full web suite green.
 - T5 (previous commit `a0e4629`): `RankingTable` + `useRankingDisplay` — backend positions with "Empate" on shared positions, branch names in the combined view, search (`type=search`, case/accent-insensitive), display-only sort via header buttons with `aria-sort` (new column starts in its natural direction, "No calculable" always last), "Ordenar por" select on phone, eligibility badges ("Participa" / "No participa" + API reason messages with icons), table from `md`, card list below, empty-search message and the official-position note. RED: missing module; GREEN: 8/8 ranking tests.
 - T6 (previous commit `daed7b6`): `ObservationList` — API order, title per rule (cashier name prefix for cashier observations), lucide icon and tone per rule (gold/info/success/neutral, no red), `<dl>` with visible Dato / Interpretación / Recomendación (recommendation on an accent strip), empty-state text. RED: missing module; GREEN: 3/3 observation tests.
+- T7 (previous commit `e4dbba6`): `recharts@^3.10.1` (latest stable, released 2026-07-25; only new dependency). `EffectivenessChart` — horizontal bars in ranking order on a 0-based linear axis (`chartScale.ts`: next of 5/10/25/50/100 at or above the max; display only), value label at every bar end, 2 px `minPointSize` stub for 0 %, track background, no animation/legend/gridlines; "No calculable" cashiers listed as text; `<figure>` with caption, SVG `aria-hidden`, visually hidden table with the same values; muted note when fewer than two calculable values. Tested via the accessible table (no Recharts sizing needed in jsdom). RED: missing modules; GREEN: 5/5 chart + scale tests.
 - Engram mirror `odd/sprint-4-dashboard/tasks`: PENDING (host session registration failing in this session).
 
 ## Next step
 
-- T7 effectiveness chart.
+- T8 upload → results flow.
