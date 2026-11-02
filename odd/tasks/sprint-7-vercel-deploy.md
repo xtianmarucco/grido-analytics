@@ -1,0 +1,67 @@
+# Feature: sprint-7-vercel-deploy
+
+## Objective
+
+Make Grido Analytics deployable and working on Vercel (web + Express API as a Vercel Function), fix the Sprint 5 download follow-ups that matter across browsers, and document deployment and use. Offline use and double-click launchers are deferred (user decision 2026-11-02).
+
+## Problem / Why
+
+The owner will publish the app on the web. GitHub Pages cannot run the Express backend (static only), so Vercel was chosen (user decision 2026-11-02). Verified Vercel constraints (docs, 2026-11-02):
+
+- Express deploys with zero configuration as a single Vercel Function; entry file must default-export the app (or listen) at e.g. `src/index.ts`/`src/app.ts`/`server.ts` of the project root. https://vercel.com/docs/frameworks/backend/express
+- `express.static()` is ignored on Vercel; static assets must be in `public/**` (served by the CDN). Same page.
+- Request/response body limit 4.5 MB (`413 FUNCTION_PAYLOAD_TOO_LARGE`). https://vercel.com/docs/functions/limitations
+- Default region `iad1`; changeable (target `gru1`, São Paulo). Hobby max duration 300 s, 2 GB memory.
+- Hobby is non-commercial only; Vercel Authentication (deployment protection) is available on Hobby for production. https://vercel.com/docs/plans/hobby
+
+## Scope
+
+- T1 Vercel build layout: Vercel project targets the repo (monorepo, pnpm workspaces). Express entry that default-exports `createApp()` without `listen` and without the `express.static`/SPA fallback (CDN serves the web build from `public/`); keep local `server.ts` (listen + static serving) working unchanged for `pnpm start`. Build step produces the web build where Vercel serves static files and the API function under the same origin (`/api/*`), with SPA fallback for non-API routes via `vercel.json` rewrites if needed. `vercel.json`: region `gru1`, function config (maxDuration modest, e.g. 60 s), no secrets. Verify against current Vercel docs (monorepo + Express + pnpm) and document the exact Vercel project settings (Root Directory, Build Command, Output, Install) the owner must set.
+- T2 Upload limit 4 MB (below the 4.5 MB platform limit incl. multipart overhead) everywhere (API constant, web copy "hasta 4 MB", docs); Spanish error message unchanged in shape. Handle a platform 413 HTML/text response in the web client as the same "archivo demasiado grande" message.
+- T3 Sprint 5 follow-ups: delay `URL.revokeObjectURL` after click (e.g. setTimeout ~ 30 s or on next tick + safe delay; document); reset export mutation state when the view changes and disable the view selector (and buttons) while a report is generating; fix tests that mutate global `URL` / leave the anchor click spy (use `vi.stubGlobal` with fresh objects and restore spies).
+- T4 Deployment smoke script `pnpm smoke <baseUrl>` (Node, no new deps): uploads a generated fictitious `.xlsx` (exceljs already present) to `<baseUrl>/api/analysis`, checks 3 views, then `/api/exports/pdf` and `/xlsx` for `all` (status, content type, `%PDF-`, xlsx sheet names). Works against local `pnpm start` and against the deployed URL.
+- T5 Docs: `docs/DEPLOYMENT.md` (Vercel steps: connect GitHub repo, project settings, region, Vercel Authentication recommendation, Hobby vs Pro note, verifying with `pnpm smoke`), `docs/GUIA_DE_USO.md` in neutral Spanish for the owner (upload, sections, exports, error messages), README links, DECISIONS (Vercel, 4 MB, offline deferred), ARCHITECTURE (deployment topology).
+
+Out of scope: offline/PWA, double-click launchers, authentication inside the app, persistence, GitHub Pages.
+
+## Constraints
+
+- Business logic unchanged; backend stays the single source of truth.
+- Same-origin `/api` in production (no CORS).
+- No secrets in the repo; no Vercel CLI login or deployment by the agent — the owner connects the repo in the Vercel dashboard.
+- Fictitious names in tests and smoke fixtures; real file never committed.
+- Test-first where a deterministic test applies.
+
+## Acceptance criteria
+
+1. Local `pnpm start` still serves web + API on 127.0.0.1:3001.
+2. A Vercel build of the repo serves the web from the CDN and `/api/*` from the Express function (verified by the owner's deploy + `pnpm smoke <url>`).
+3. Upload limit 4 MB with clear Spanish message, including platform 413.
+4. Downloads work in Chrome, Safari and Firefox (Safari/Firefox confirmed by the owner); export state does not leak across views.
+5. `pnpm typecheck|lint|format:check|test|build` pass; `pnpm smoke http://127.0.0.1:3001` passes.
+
+## Tasks
+
+- [x] T1 Vercel build layout + `vercel.json` + Express function entry.
+- [ ] T2 Upload limit 4 MB + platform 413 handling.
+- [ ] T3 Sprint 5 download/export follow-ups + test cleanup.
+- [ ] T4 `pnpm smoke <baseUrl>`.
+- [ ] T5 Docs (DEPLOYMENT, GUIA_DE_USO, README, DECISIONS, ARCHITECTURE).
+
+## Routing
+
+- T1–T5: delegated direct (one bounded writer). Trigger: writer trigger — 2+ non-trivial files.
+
+## Delivery
+
+- Single PR per sprint. Branch `feat/sprint-7-vercel-deploy` stacked on `feat/sprint-6-cash-control` (`eac2c68`; PR #6 still open). Retarget to `main` after PR #6 merges. Review base: `eac2c68`.
+
+## Progress / Evidence
+
+- Engram mirror `odd/sprint-7-vercel-deploy/tasks`: PENDING (host session registration failing in this session).
+
+- T1 (delegated writer): RED `apps/api/src/index.test.ts` failed (no `src/index.ts`), GREEN 2/2. Layout: Vercel Root Directory `apps/api`, Express preset, entry `apps/api/src/index.ts` (default export of `createApp()`), `apps/api/vercel.json` (gru1, `functions["index.js"].maxDuration` 60, SPA rewrite), `pnpm run vercel-build` builds shared + web and copies `apps/web/dist` to `apps/api/public` (CDN). Local `npx vercel@latest build` (CLI 65.9.0, offline, hand-written `.vercel/project.json` in a scratch copy, no login/link) → `status: ok`; output: static `index.html` + `assets/`, one function `index.func` (runtime nodejs26.x, maxDuration 60, `packages/shared/dist`, pdfmake `vfs_fonts.js`, exceljs traced); materialized bundle answered `/api/health` 200. Found and fixed: Vercel's Node builder reads `apps/api/tsconfig.json` without `extends` and forces `strict: false` when `module` is missing → TS2345 in the build; `module`/`moduleResolution` now explicit. A `functions` key `src/index.ts` was silently ignored; `index.js` (the preset's function source) applies.
+
+## Next step
+
+- Implement T2.

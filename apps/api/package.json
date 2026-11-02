@@ -4,12 +4,16 @@
   "private": true,
   "description": "Express API for Grido Analytics. In production it also serves the built web app.",
   "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "vercel-build": "pnpm --filter @grido/shared --filter @grido/web build && node scripts/copy-web-build.mjs"
   },
   "dependencies": {
     "@grido/shared": "workspace:*",

@@ -28,3 +28,7 @@ pnpm-debug.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Vercel: web build copied into the API project (apps/api/scripts/copy-web-build.mjs)
+apps/api/public/
+.vercel/
