@@ -121,7 +121,7 @@ function FilePicker({ label, variant = 'default', disabled, onFileSelected }: Fi
         htmlFor={id}
         className={cn(
           buttonVariants({ variant }),
-          'cursor-pointer peer-focus-visible:ring-[3px] peer-focus-visible:ring-ring/50 peer-disabled:pointer-events-none peer-disabled:opacity-50',
+          'cursor-pointer peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring peer-disabled:pointer-events-none peer-disabled:opacity-50',
         )}
       >
         <Upload aria-hidden />

@@ -43,7 +43,7 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
 ## Tasks
 
 - [x] T1 Design guide: `docs/UI_UX_GUIDELINES.md`, `docs/FRONTEND_RULES.md` (stop for approval).
-- [ ] T2 Theme tokens, header, view selector.
+- [x] T2 Theme tokens, header, view selector.
 - [ ] T3 Summary cards.
 - [ ] T4 Podium.
 - [ ] T5 Ranking table.
@@ -64,8 +64,18 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
 ## Progress / Evidence
 
 - T1: added `docs/UI_UX_GUIDELINES.md` (palette with hex/OKLCH and computed WCAG ratios, typography, layout, formatting, component specs with wireframes, states, accessibility, icons) and `docs/FRONTEND_RULES.md`; D-34 in `docs/DECISIONS.md`. Checks: `prettier --check` on the four files and `pnpm format:check` pass. Commit: see `git log` (`docs: add ui/ux guidelines and frontend rules`). Palette pending user confirmation of brand colors.
+- 2026-11-02: user APPROVED the design guide as written — proposed palette (no official brand hex
+  provided), default view "Ambas sucursales" (`all`), podium and observation texts. Recorded in D-34
+  and the guide status.
+- T2 (previous commit `b20d568`): theme tokens (guide hex values) in `index.css`, focus ring per §9,
+  badge variants (success/info/muted/warning soft), `lib/format.ts` (moved from `features/upload`,
+  adds `formatPercent`, `formatInteger`, `formatPeriod`, `formatOrdinal`), `ViewSelector` (native
+  radio group, API labels and order), `AnalysisDashboard` container (default `all`, falls back to the
+  first view) with period and an `aria-live` "Mostrando …" announcement; `<html lang="es-AR">`. The
+  page header keeps title, subtitle and server status; the period sits next to the view selector
+  (guide wireframe). RED: 5 failing tests + 2 missing modules; GREEN: 31/31 web tests.
 - Engram mirror `odd/sprint-4-dashboard/tasks`: PENDING (host session registration failing in this session).
 
 ## Next step
 
-- User approval of the design guide (palette pending).
+- T3 summary cards.

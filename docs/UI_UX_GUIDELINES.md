@@ -4,8 +4,8 @@ Design guide for the Sprint 4 dashboard: upload → per-view results (summary, p
 observations, chart). It must be approved before any screen is built. Code rules live in
 [FRONTEND_RULES.md](FRONTEND_RULES.md).
 
-> **Status:** palette is **pending user confirmation of brand colors**. Everything else is a
-> proposal for approval.
+> **Status:** approved by the user on 2026-11-02: proposed palette (no official brand hex was
+> provided), default view "Ambas sucursales" (`all`), podium and observation texts as written.
 
 ## Quick path
 
@@ -25,10 +25,10 @@ observations, chart). It must be approved before any screen is built. Code rules
 | Informative, never an error | "No calculable" and ineligibility reasons are informative badges (muted/info tone), not error styling.                                                         |
 | Offline and calm            | No external resources. Motion is minimal and respects reduced motion.                                                                                          |
 
-## 2. Palette (pending user confirmation of brand colors)
+## 2. Palette (approved 2026-11-02)
 
-Inspired by Grido: deep blue primary, light/sky blue accent, warm podium metals. Exact brand
-values are unknown; swap hex values once the owner confirms them and recheck contrast.
+Inspired by Grido: deep blue primary, light/sky blue accent, warm podium metals. No official brand
+hex was provided; if the owner supplies them later, swap the values and recheck contrast.
 
 **Theme choice:** light theme only for the MVP. Tokens stay in `:root` so a dark theme can be
 added later without touching components; it is not designed or built now.
@@ -264,7 +264,7 @@ explain it.
   (Almirante / Barranqueras / Ambas sucursales). Selected: `primary` fill + `primary-foreground`
   text; unselected: `secondary` track + `foreground` text; boundary uses `--input`.
 - Visible label "Vista" (or `aria-label="Vista"`). Default selection: the combined view
-  (`all`), because it is the owner's overview. _(Open question for the user.)_
+  (`all`), because it is the owner's overview. _(Approved 2026-11-02.)_
 - Changing the view never re-uploads; it only swaps the displayed `AnalysisView`. Focus stays
   on the control; an `aria-live="polite"` region announces "Mostrando Almirante".
 
@@ -457,7 +457,7 @@ icon dependency is needed for Phase B.
 
 ## Checklist for approval
 
-- [ ] Palette accepted, or brand hex values provided (contrast rechecked after the change).
-- [ ] Section order and default view accepted.
-- [ ] Podium state texts accepted.
-- [ ] Observation titles accepted.
+- [x] Palette accepted, or brand hex values provided (contrast rechecked after the change).
+- [x] Section order and default view accepted.
+- [x] Podium state texts accepted.
+- [x] Observation titles accepted.
