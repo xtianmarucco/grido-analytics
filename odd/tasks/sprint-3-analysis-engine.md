@@ -51,7 +51,7 @@ Out of scope: dashboard UI, charts, exports, persistence, historical comparisons
 - [x] T2 `apps/api/src/analysis/consolidate.ts`: view filtering, consolidation, effectiveness, summary.
 - [x] T3 `apps/api/src/analysis/ranking.ts`: comparator, shared positions, eligibility and reasons.
 - [x] T4 `apps/api/src/analysis/podium.ts`: eligible top 3, vacancies, ties.
-- [ ] T5 `apps/api/src/analysis/observations.ts`: rules O1–O6.
+- [x] T5 `apps/api/src/analysis/observations.ts`: rules O1–O6.
 - [ ] T6 Wire analysis into `POST /api/analysis` (additive response) with endpoint tests.
 - [ ] T7 Docs update.
 
@@ -69,8 +69,9 @@ Out of scope: dashboard UI, charts, exports, persistence, historical comparisons
 - T2 (prev `1fa67d7`): RED `vitest run src/analysis` → cannot find `./consolidate.js`. GREEN → 10/10 (effectiveness incl. division by zero, views by branch code + combined, cross-branch merge with `branchCodes`, totals-not-averages). Combined label: "Ambas sucursales" for exactly two branches, otherwise "Todas las sucursales".
 - T3 (prev `ecf6eec`): RED → cannot find `./ranking.js`. GREEN → analysis 24/24 (1, 2, 2, 4; aceptadas/activadas tie-breaks; not calculable last and shared; es display order inside ties; each eligibility reason and all-reasons case). Effectiveness is compared by cross-multiplication of integer counts, so equal ratios never drift.
 - T4 (prev `03a7548`): RED → cannot find `./podium.js`. GREEN → analysis 32/32 (top 3, ineligible skipped and renumbered, 30-ticket/1-aceptada boundary, all vacant, two tied at 2nd → 3rd `covered-by-tie`, three tied at 1st, ties at 3rd kept, two tied at 1st → 2nd covered + 3rd vacant). Podium cashier `position` is the podium one (among eligible).
+- T5 (prev `f1d1295`): RED → cannot find `./observations.js`. GREEN → analysis 49/49 (each of O1–O6 fires / does not fire, boundaries, singular/plural, rule-then-ranking order, determinism, no causal wording). O3 compares exactly with integer cross-multiplication; O6 ignores `covered-by-tie` steps. Tied 1st place reads "Comparte el resultado más alto…". O2 and O5 may both fire for the same cashier (literal scope; noted as open question).
 - Engram mirror `odd/sprint-3-analysis-engine/tasks`: PENDING (host session registration failing in this session).
 
 ## Next step
 
-- Implement T5.
+- Implement T6.
