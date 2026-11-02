@@ -48,7 +48,7 @@ Out of scope: dashboard UI, charts, exports, persistence, historical comparisons
 ## Tasks
 
 - [x] T1 `packages/shared`: view, summary, ranking entry, eligibility reason, podium, observation schemas; extend analysis response with `views`.
-- [ ] T2 `apps/api/src/analysis/consolidate.ts`: view filtering, consolidation, effectiveness, summary.
+- [x] T2 `apps/api/src/analysis/consolidate.ts`: view filtering, consolidation, effectiveness, summary.
 - [ ] T3 `apps/api/src/analysis/ranking.ts`: comparator, shared positions, eligibility and reasons.
 - [ ] T4 `apps/api/src/analysis/podium.ts`: eligible top 3, vacancies, ties.
 - [ ] T5 `apps/api/src/analysis/observations.ts`: rules O1–O6.
@@ -66,8 +66,9 @@ Out of scope: dashboard UI, charts, exports, persistence, historical comparisons
 ## Progress / Evidence
 
 - T1 (delegated writer, base `7890692`): RED `pnpm --filter @grido/shared test` → analysis.test.ts failed (`EligibilityReasonCode` undefined). GREEN → 26/26. `views` is required in the schema; the router returns `views: []` until T6 and web fixtures gained `views: []`. Podium steps carry `status: filled | covered-by-tie | vacant`; observation rules are `O1`–`O6`. Full suite: shared 26, api 76, web 21.
+- T2 (prev `1fa67d7`): RED `vitest run src/analysis` → cannot find `./consolidate.js`. GREEN → 10/10 (effectiveness incl. division by zero, views by branch code + combined, cross-branch merge with `branchCodes`, totals-not-averages). Combined label: "Ambas sucursales" for exactly two branches, otherwise "Todas las sucursales".
 - Engram mirror `odd/sprint-3-analysis-engine/tasks`: PENDING (host session registration failing in this session).
 
 ## Next step
 
-- Implement T2.
+- Implement T3.
