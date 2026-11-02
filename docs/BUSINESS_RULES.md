@@ -45,15 +45,21 @@ Still tied → shared position.
 
 ## Validation
 
-| Situation                         | Result                  |
-| --------------------------------- | ----------------------- |
-| File unreadable                   | Whole file rejected     |
-| Required column missing           | Whole file rejected     |
-| Invalid row                       | Row excluded + warning  |
-| Duplicate `turno`, identical rows | Counted once + warning  |
-| Duplicate `turno`, differing data | Both excluded + warning |
+Implemented in Sprint 2 (`apps/api/src/import`); full detail in
+[BACKEND_RULES.md](BACKEND_RULES.md).
 
-Rows are never dropped silently.
+| Situation                                | Result                 |
+| ---------------------------------------- | ---------------------- |
+| File unreadable, empty or not `.xlsx`    | Whole file rejected    |
+| Required column missing                  | Whole file rejected    |
+| More than one period (`desde` / `hasta`) | Whole file rejected    |
+| No valid row left                        | Whole file rejected    |
+| Invalid row                              | Row excluded + warning |
+| Counts do not add up to `totaltiquets`   | Row excluded + warning |
+| Duplicate `turno`, identical rows        | Counted once + warning |
+| Duplicate `turno`, differing data        | All excluded + warning |
+
+Rows with content are never dropped silently.
 
 ## Scope
 

@@ -51,7 +51,7 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 - [x] T3 `apps/api/src/import`: row validation + normalization, duplicates, single-period check, warnings.
 - [x] T4 `apps/api/src/http`: multer upload, limits, signature check, `POST /api/analysis`, error mapping.
 - [x] T5 `apps/web/src/features/upload`: upload UI, states, preview table, warnings, replace file.
-- [ ] T6 Docs update.
+- [x] T6 Docs update.
 
 ## Routing
 
@@ -70,8 +70,11 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 - T2 (delegated writer): exceljs 4.4.0 added; `pnpm audit --prod` = 2 moderate (uuid <11.1.1 buffer arg, minimatch via archiver/unzipper glob), no high/critical, none on the read path. RED `read-workbook.test.ts` failed (`Cannot find module './errors.js'`); first GREEN run 12/13 (ZIP without workbook reported EMPTY_FILE → fixed: no worksheet = UNREADABLE_FILE); GREEN api 30/30. Added ZIP central-directory guard (declared uncompressed size ≤ 64 MB) before exceljs inflates. Commit `3f8d6fc`.
 - T3 (delegated writer): RED `normalize-shifts.test.ts` + `import-shift-workbook.test.ts` failed (`Cannot find module`); first GREEN run 33/36 (three fixtures had start after the default close; the close-before-start rule excluded them correctly → fixtures fixed); GREEN api 53/53. Manual check on the real file (not committed): 28 shifts, branches 1/2 with 14 each, period 2026-10-19..2026-10-25, 0 warnings, summary 28/28/0. Commit `90ce97a`.
 - T4 (delegated writer): multer 2.5.0 + @types/multer 2.3.0 added; audit unchanged (2 moderate). RED `analysis-router.test.ts` 17/18 failed (only GET 404 passed); GREEN api 71/71 on first implementation run. Memory storage only; multer/busboy errors mapped to 400/413/415. Commit `8a569a4`.
-- T5 (delegated writer): RED `api.test.ts` (`uploadAnalysis is not a function`, 2 failed) and `features/upload/*.test.ts(x)` (`Failed to resolve import`); GREEN web 21/21. Added shadcn `table`, `--warning` token; health indicator moved to the header (compact). Commit: see T6 entry.
+- T5 (delegated writer): RED `api.test.ts` (`uploadAnalysis is not a function`, 2 failed) and `features/upload/*.test.ts(x)` (`Failed to resolve import`); GREEN web 21/21. Added shadcn `table`, `--warning` token; health indicator moved to the header (compact). Commit `4193e93`.
+- T6 (delegated writer): docs updated (API_CONTRACT, DATA_DICTIONARY, BUSINESS_RULES, ARCHITECTURE, DECISIONS D-18..D-26, README, DEVELOPMENT_WORKFLOW) and added BACKEND_RULES, TESTING_STRATEGY. Passive docs: structural check only (prettier). Commit: `docs: document excel import` (hash in git log).
+- Final verification (2026-11-02): install ok; typecheck/lint/format:check/build pass; tests shared 19, api 71, web 21 (all pass); audit --prod 2 moderate (uuid, minimatch; transitive via exceljs, not on the read path).
+- Live check (`PORT=3002 pnpm start`; port 3001 was held by a pre-existing server process not started in this session): real file → 28 shifts, 2 branches, period 2026-10-19..2026-10-25, 0 warnings; renamed .txt→.xlsx 415, .txt 415, .csv 415, no file 400, 6 MB 413 — all with Spanish messages. Acceptance criteria 1–6 met (5: multer memoryStorage, no disk writes).
 
 ## Next step
 
-- Implement T6.
+- Owner review of the branch; push and PR are the owner's decisions. Resync the Engram mirror (still PENDING from the writer's side).
