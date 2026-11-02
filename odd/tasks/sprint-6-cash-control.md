@@ -49,7 +49,7 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 - [x] T2 Import: required money columns, money parsing, validation.
 - [x] T3 `analysis/cash-control.ts`: indicators, shift alerts, low-cash signals; wired into `analyzeImport`.
 - [x] T4 Web: summary cards + `CashControl` section.
-- [ ] T5 Exports: Excel sheet `Control de caja` + PDF section.
+- [x] T5 Exports: Excel sheet `Control de caja` + PDF section.
 - [ ] T6 Docs.
 
 ## Delivery
@@ -66,8 +66,10 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 
 - T3 (delegated writer): RED — `cash-control.test.ts` failed (`./cash-control.js` missing) and `analyze.test.ts` failed schema validation (no `cashControl`). GREEN — API 211/211 tests, API `tsc --noEmit` clean. Thresholds on integer cents; the 10-point signal uses exact BigInt cross-multiplication. Real file (numbers only) matches every expected value: % efectivo 39,44 / 40,42 / 40,05; % Club 63,09 / 54,78 / 57,88; net −1.680,17 / −7.250,64 / −8.930,81; alerts 1,00 / 1,46 / 3,81; 1 signal (branch 1, día, 12,52 pts). Commit `65e3411`.
 
-- T4 (delegated writer): RED — 13 web tests failed (`formatMoney`/`formatSignedMoney`/`formatDecimal`/`formatDayMonth` missing, 6 instead of 10 summary cards, `./CashControl` missing; upload tests failed on the response schema until the fixture shift got money fields). GREEN — web 88/88, web `tsc --noEmit` clean. Money format: `Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })` → `$ 1.234,56` / `-$ 6.000,00` (no-break space after `$`); differences use `signDisplay: 'exceptZero'` (`+$ 2.619,76`). Headless Chromium on the real file: 375 px and 1280 px `scrollWidth <= innerWidth`. Commit: see T5 entry.
+- T4 (delegated writer): RED — 13 web tests failed (`formatMoney`/`formatSignedMoney`/`formatDecimal`/`formatDayMonth` missing, 6 instead of 10 summary cards, `./CashControl` missing; upload tests failed on the response schema until the fixture shift got money fields). GREEN — web 88/88, web `tsc --noEmit` clean. Money format: `Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })` → `$ 1.234,56` / `-$ 6.000,00` (no-break space after `$`); differences use `signDisplay: 'exceptZero'` (`+$ 2.619,76`). Headless Chromium on the real file: 375 px and 1280 px `scrollWidth <= innerWidth`. Commit `7468c6f`.
+
+- T5 (delegated writer): RED — 10 export tests failed (no `Control de caja` sheet, no cash rows in `Resumen`, no PDF section/cards). GREEN — API 221/221, API `tsc --noEmit` clean. Excel money cells use numFmt `"$" #,##0.00`, percentages `0.00%` fractions, hours/rates/points `0.00`. PDF section placed after the ranking (dashboard order); amber `#B45309` for signals. Commit: see T6 entry.
 
 ## Next step
 
-- Implement T5.
+- Implement T6.

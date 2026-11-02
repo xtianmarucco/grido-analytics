@@ -84,6 +84,7 @@ describe('POST /api/exports/xlsx', () => {
       'Ranking',
       'Podio',
       'Observaciones',
+      'Control de caja',
     ]);
     expect(workbook.getWorksheet('Ranking')?.getCell('B2').value).toBe('Bruno');
   });
