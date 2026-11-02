@@ -126,8 +126,8 @@ Implemented in Sprint 2 (`apps/api/src/import`); full detail in
 | No valid row left                        | Whole file rejected    |
 | Invalid row                              | Row excluded + warning |
 | Counts do not add up to `totaltiquets`   | Row excluded + warning |
-| Duplicate `turno`, identical rows        | Counted once + warning |
-| Duplicate `turno`, differing data        | All excluded + warning |
+| Duplicate branch + `turno`, identical    | Counted once + warning |
+| Duplicate branch + `turno`, differing    | All excluded + warning |
 
 Rows with content are never dropped silently.
 

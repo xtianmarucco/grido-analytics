@@ -49,7 +49,7 @@ export function ImportPreview({ result }: { result: ImportResult }) {
         </TableHeader>
         <TableBody>
           {shifts.map((shift) => (
-            <TableRow key={shift.turno}>
+            <TableRow key={`${shift.branchCode}-${shift.turno}`}>
               <TableCell>{shift.branchName}</TableCell>
               <TableCell className={numeric}>{shift.turno}</TableCell>
               <TableCell>{shift.cashierName}</TableCell>

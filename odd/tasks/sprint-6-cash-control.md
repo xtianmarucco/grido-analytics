@@ -51,6 +51,7 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 - [x] T4 Web: summary cards + `CashControl` section.
 - [x] T5 Exports: Excel sheet `Control de caja` + PDF section.
 - [x] T6 Docs.
+- [x] T7 Review follow-up: shift identity = branch + `turno` in import duplicate detection, duplicate warnings name the branch, React keys in import preview and cash alerts.
 
 ## Delivery
 
@@ -76,6 +77,8 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 - Parent spot check: `cash-control-1280.png` reviewed — limitation note, amber "Señal para revisar" items (3 shift alerts, 1 low-cash signal), per-cashier table with slot tickets/hour.
 - Native review (2026-11-02): medium (`executable_change` apps/api/src/analysis/analyze.ts), review_due slice_budget_reached (2633 lines over d9bcb3a..HEAD). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-c375329170ccafcf).
 - Advisory: R3-alert-key-collision (WARNING, `apps/web/src/features/analysis/CashControl.tsx:70`: React key `turno` only). Parent finding while triaging: the import groups duplicates by `turno` alone (`apps/api/src/import/normalize-shifts.ts:201-221`), so shifts from different branches sharing a `turno` number would be treated as duplicates and excluded. Real ids are per-branch sequences (Almirante ~7120s, Barranqueras ~5840s) that could collide in the future; today the import makes turno globally unique, so the React key cannot collide yet.
+
+- T7 (inline, parent): RED `vitest run src/import/normalize-shifts.test.ts` → 1 failed (same turno in two branches excluded as conflicting duplicate); web RED `CashControl.test.tsx` → duplicate-key console error. GREEN: api 220/220, web 89/89; `pnpm typecheck|lint|format:check|test|build` ok. Real file: 28 shifts, 0 warnings, rankings 3/3/5 (unchanged). Docs: BACKEND_RULES, BUSINESS_RULES, DATA_DICTIONARY, DECISIONS.
 
 ## Next step
 

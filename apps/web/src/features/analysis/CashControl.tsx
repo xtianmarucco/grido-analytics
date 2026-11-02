@@ -66,7 +66,11 @@ export function CashControl({ cashControl, combined = false }: CashControlProps)
       <div className="grid gap-4 lg:grid-cols-2">
         <SignalGroup title="Diferencias de caja para revisar" empty={shiftAlerts.length === 0}>
           {shiftAlerts.map((alert) => (
-            <AlertItem key={alert.turno} alert={alert} combined={combined} />
+            <AlertItem
+              key={`${alert.branchCode}-${alert.turno}`}
+              alert={alert}
+              combined={combined}
+            />
           ))}
         </SignalGroup>
         <SignalGroup

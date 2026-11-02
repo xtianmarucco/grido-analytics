@@ -48,11 +48,12 @@ Applied in this order:
 | Empty or invalid required value (one warning lists every column)    | `INVALID_VALUE`         | Row excluded   |
 | `turcierre` before `turiniciaturno`, or `desde` after `hasta`       | `INVALID_VALUE`         | Row excluded   |
 | `sv_noactivada + sv_rechazada + sv_aceptada ≠ totaltiquets`         | `TICKET_MISMATCH`       | Row excluded   |
-| Same `turno`, identical normalized data                             | `DUPLICATE_SHIFT`       | Counted once   |
-| Same `turno`, differing data                                        | `CONFLICTING_DUPLICATE` | Every copy out |
+| Same branch + `turno`, identical data                               | `DUPLICATE_SHIFT`       | Counted once   |
+| Same branch + `turno`, differing data                               | `CONFLICTING_DUPLICATE` | Every copy out |
 | `sucursal` code seen earlier (sheet order) with another `succodigo` | `INVALID_VALUE`         | Row excluded   |
 
 - Duplicates are compared after normalization, so `Ana` and `ana` are the same data.
+- A shift is identified by branch + `turno`: each branch numbers its shifts independently, so the same number in two branches is two different shifts.
 - A copy excluded by an earlier rule does not count as a duplicate.
 - Row numbers in warnings are 1-based sheet rows (header = row 1).
 - `summary.excludedRows` = `totalRows − includedRows` (invalid rows plus merged copies).

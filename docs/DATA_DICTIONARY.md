@@ -30,20 +30,20 @@ Formula cells use their cached result; rich text and hyperlinks use their text; 
 
 ## Identity and period
 
-| Column                      | Meaning                                          | Used |
-| --------------------------- | ------------------------------------------------ | ---- |
-| `succodigo`                 | Branch name (`Almirante`, `Barranquer`)          | Yes  |
-| `sucursal`                  | Branch code (1 Almirante, 2 Barranqueras)        | Yes  |
-| `sucdescrip`                | Always `TODAS`                                   | No   |
-| `turno`                     | Shift id, unique per shift (duplicate detection) | Yes  |
-| `caja`                      | Register                                         | No   |
-| `usulogin`                  | Cashier login                                    | Yes  |
-| `turusulogininic`           | Login that opened the shift                      | No   |
-| `turiniciaturno`            | Shift start datetime                             | Yes  |
-| `turcierre`                 | Shift close datetime                             | Yes  |
-| `turapertura`               | Equals the previous shift's close                | No   |
-| `desde` / `hasta`           | Report period                                    | Yes  |
-| `desdeturno` / `hastaturno` | Always empty                                     | No   |
+| Column                      | Meaning                                                           | Used |
+| --------------------------- | ----------------------------------------------------------------- | ---- |
+| `succodigo`                 | Branch name (`Almirante`, `Barranquer`)                           | Yes  |
+| `sucursal`                  | Branch code (1 Almirante, 2 Barranqueras)                         | Yes  |
+| `sucdescrip`                | Always `TODAS`                                                    | No   |
+| `turno`                     | Shift id, unique per branch (duplicate detection with `sucursal`) | Yes  |
+| `caja`                      | Register                                                          | No   |
+| `usulogin`                  | Cashier login                                                     | Yes  |
+| `turusulogininic`           | Login that opened the shift                                       | No   |
+| `turiniciaturno`            | Shift start datetime                                              | Yes  |
+| `turcierre`                 | Shift close datetime                                              | Yes  |
+| `turapertura`               | Equals the previous shift's close                                 | No   |
+| `desde` / `hasta`           | Report period                                                     | Yes  |
+| `desdeturno` / `hastaturno` | Always empty                                                      | No   |
 
 ## Upselling (SB)
 

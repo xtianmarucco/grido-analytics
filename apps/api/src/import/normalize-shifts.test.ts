@@ -261,7 +261,7 @@ describe('normalizeShifts: duplicate turno', () => {
         row: 2,
         turno: 30,
         message:
-          'El turno 30 aparece 2 veces con los mismos datos (filas 2, 5). Se contó una sola vez.',
+          'El turno 30 de Almirante aparece 2 veces con los mismos datos (filas 2, 5). Se contó una sola vez.',
       },
     ]);
     expect(result.summary).toEqual({ totalRows: 3, includedRows: 2, excludedRows: 1 });
@@ -281,9 +281,28 @@ describe('normalizeShifts: duplicate turno', () => {
         row: 2,
         turno: 31,
         message:
-          'El turno 31 aparece 2 veces con datos distintos (filas 2, 4). No se incluyó ninguna de esas filas.',
+          'El turno 31 de Almirante aparece 2 veces con datos distintos (filas 2, 4). No se incluyó ninguna de esas filas.',
       },
     ]);
+  });
+
+  it('keeps the same turno number in different branches as different shifts', () => {
+    const result = normalizeShifts([
+      raw(2, { turno: 33 }),
+      raw(3, {
+        turno: 33,
+        succodigo: 'Barranquer',
+        sucursal: 2,
+        sv_aceptada: 9,
+        sv_noactivada: 11,
+      }),
+    ]);
+
+    expect(result.shifts.map((s) => [s.branchCode, s.turno])).toEqual([
+      [1, 33],
+      [2, 33],
+    ]);
+    expect(result.warnings).toEqual([]);
   });
 
   it('keeps the valid copy when the other copy is invalid', () => {

@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { CashControl, LIMITATION_NOTE } from './CashControl';
 import { cashControl, emptyCashControl } from './fixtures';
@@ -44,6 +44,21 @@ describe('CashControl', () => {
     render(<CashControl cashControl={cashControl()} combined />);
 
     expect(screen.getAllByText(/Almirante · /).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('lists alerts with the same turno number from different branches separately', () => {
+    const base = cashControl();
+    const [alert] = base.shiftAlerts;
+    if (!alert) throw new Error('fixture needs an alert');
+    const other = { ...alert, branchCode: alert.branchCode + 1, branchName: 'Barranqueras' };
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<CashControl cashControl={{ ...base, shiftAlerts: [alert, other] }} combined />);
+
+    const list = screen.getByRole('list', { name: 'Diferencias de caja para revisar' });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2);
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 
   it('shows empty states when there are no signals', () => {
