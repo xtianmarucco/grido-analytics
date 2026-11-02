@@ -60,6 +60,7 @@ const analysis = {
     warnings: [],
     summary: { totalRows: 0, includedRows: 0, excludedRows: 0 },
   },
+  views: [],
 };
 
 describe('uploadAnalysis', () => {

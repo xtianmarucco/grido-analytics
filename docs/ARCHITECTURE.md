@@ -26,7 +26,7 @@ Dev:  Browser ──► 127.0.0.1:5173 (Vite) ──/api proxy──► 127.0.0.
 | `config.ts` | Env parsing (`HOST`, `PORT`, `NODE_ENV`)                                             | Sprint 1     |
 | `server.ts` | Composition root: config, web build detection, `listen`                              | Sprint 1     |
 | `import/`   | Excel reading (exceljs), row validation and normalization → shifts + warnings. Pure. | Sprint 2     |
-| `analysis/` | Pure business functions: totals, effectiveness, ranking, podium. No Express imports. | Sprint 3     |
+| `analysis/` | Pure business functions: views, totals, ranking, podium, observations. No Express.   | Sprint 3     |
 | `export/`   | PDF (pdfmake) and Excel (exceljs) generation                                         | Sprint 5     |
 
 Folders are created when their sprint starts, not before.
@@ -55,5 +55,5 @@ Containers own data fetching (TanStack Query); presentational components receive
 
 ## Request lifecycle
 
-`POST /api/analysis` (multipart `file`) → multer memory storage → `import/` → JSON. The backend is the single source of truth. Each request carries the Excel file; nothing is stored
+`POST /api/analysis` (multipart `file`) → multer memory storage → `import/` → `analysis/` (`analyzeImport`) → JSON `{ import, views }`. The backend is the single source of truth. Each request carries the Excel file; nothing is stored
 between requests. Exports re-send the file plus the selected view and are recomputed server-side.

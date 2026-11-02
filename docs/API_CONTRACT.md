@@ -99,8 +99,77 @@ Schema: `healthResponseSchema`.
 - `period`: calendar dates from `desde` / `hasta`.
 - Warning codes: `INVALID_VALUE`, `TICKET_MISMATCH`, `DUPLICATE_SHIFT`, `CONFLICTING_DUPLICATE`.
   Rules in [BACKEND_RULES.md](BACKEND_RULES.md).
-- Sprint 3 adds a `views` key next to `import` (Almirante, Barranqueras, both). Additive: clients
-  that only read `import` keep working.
+- `views` (Sprint 3, additive: clients that only read `import` keep working): one view per
+  branch by code (`branch-<code>`), then `all`. Rules in [BUSINESS_RULES.md](BUSINESS_RULES.md). One view (observations shortened; O5 and O6 also apply here):
+
+```json
+{
+  "id": "branch-1",
+  "label": "Almirante",
+  "branchCodes": [1],
+  "summary": {
+    "period": { "from": "2026-10-19", "to": "2026-10-25" },
+    "cashierCount": 2,
+    "shiftCount": 9,
+    "tickets": 300,
+    "activadas": 250,
+    "aceptadas": 20,
+    "effectiveness": 8
+  },
+  "ranking": [
+    {
+      "position": 1,
+      "cashierKey": "ana",
+      "cashierName": "Ana",
+      "branchCodes": [1],
+      "shiftCount": 5,
+      "tickets": 230,
+      "activadas": 212,
+      "aceptadas": 20,
+      "effectiveness": 9.433962264150944,
+      "eligible": true,
+      "ineligibilityReasons": []
+    },
+    {
+      "position": 2,
+      "cashierKey": "bruno",
+      "cashierName": "Bruno",
+      "branchCodes": [1],
+      "shiftCount": 4,
+      "tickets": 70,
+      "activadas": 38,
+      "aceptadas": 0,
+      "effectiveness": 0,
+      "eligible": false,
+      "ineligibilityReasons": [{ "code": "NO_ACCEPTED", "message": "Sin sobreventas aceptadas" }]
+    }
+  ],
+  "podium": [
+    {
+      "position": 1,
+      "status": "filled",
+      "cashiers": [{ "position": 1, "cashierKey": "ana", "...": "ranking entry" }]
+    },
+    { "position": 2, "status": "vacant", "cashiers": [] },
+    { "position": 3, "status": "vacant", "cashiers": [] }
+  ],
+  "observations": [
+    {
+      "rule": "O1",
+      "cashierKey": "ana",
+      "fact": "Ana concretó 20 de 212 sobreventas activadas (9,43 %).",
+      "interpretation": "Es el resultado más alto de la semana en Almirante.",
+      "recommendation": "Invitar a Ana a compartir con el equipo cómo ofrece las sobreventas."
+    }
+  ]
+}
+```
+
+- `effectiveness`: percent at full precision (round only for display); `null` = "No calculable".
+- `ranking`: best first; `position` uses standard competition numbering (1, 2, 2, 4).
+- `podium`: always three steps; `status` is `filled`, `covered-by-tie` or `vacant`. A podium
+  cashier's `position` is its position among eligible cashiers.
+- `observations[].rule`: `O1`–`O6`; `cashierKey` only on per-cashier rules. Show texts as-is.
 
 ## Drafts
 

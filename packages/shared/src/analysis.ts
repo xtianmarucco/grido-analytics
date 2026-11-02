@@ -96,11 +96,150 @@ export const importResultSchema = z.object({
 export type ImportResult = z.infer<typeof importResultSchema>;
 
 /**
- * Response of `POST /api/analysis`. Sprint 2 returns the `import` section; Sprint 3 adds the
- * analysis `views` next to it as a new key, so existing clients keep working.
+ * Effectiveness in percent (`aceptadas / activadas × 100`) at full precision, or `null` when the
+ * cashier or view has no activadas ("No calculable"). Round only for display.
+ */
+export const effectivenessSchema = z.number().min(0).max(100).nullable();
+
+export type Effectiveness = z.infer<typeof effectivenessSchema>;
+
+/** Why a cashier cannot be on the podium. A cashier carries every reason that applies. */
+export const EligibilityReasonCode = {
+  /** Fewer than 30 tickets in the view. */
+  MinTickets: 'MIN_TICKETS',
+  /** No accepted upsell in the view. */
+  NoAccepted: 'NO_ACCEPTED',
+  /** No activadas, so effectiveness cannot be computed. */
+  NotCalculable: 'NOT_CALCULABLE',
+} as const;
+
+export type EligibilityReasonCode =
+  (typeof EligibilityReasonCode)[keyof typeof EligibilityReasonCode];
+
+export const eligibilityReasonSchema = z.object({
+  code: z.enum(EligibilityReasonCode),
+  /** Spanish, user-facing. */
+  message: z.string().min(1),
+});
+
+export type EligibilityReason = z.infer<typeof eligibilityReasonSchema>;
+
+/** One cashier consolidated over every shift of a view. */
+export const cashierTotalsSchema = z.object({
+  cashierKey: z.string().min(1),
+  /** Display name from the import (`cashierName`). */
+  cashierName: z.string().min(1),
+  /** Branches the cashier worked in within the view, ascending. */
+  branchCodes: z.array(z.number().int().positive()).min(1),
+  shiftCount: count,
+  tickets: count,
+  activadas: count,
+  aceptadas: count,
+  effectiveness: effectivenessSchema,
+});
+
+export type CashierTotals = z.infer<typeof cashierTotalsSchema>;
+
+/** A ranked cashier. `position` uses standard competition numbering (1, 2, 2, 4). */
+export const rankingEntrySchema = cashierTotalsSchema.extend({
+  position: z.number().int().positive(),
+  /** Podium-eligible: ≥ 30 tickets, ≥ 1 aceptada and calculable effectiveness. */
+  eligible: z.boolean(),
+  /** Empty when `eligible`. */
+  ineligibilityReasons: z.array(eligibilityReasonSchema),
+});
+
+export type RankingEntry = z.infer<typeof rankingEntrySchema>;
+
+/**
+ * `filled`: at least one eligible cashier holds this position. `covered-by-tie`: no one holds it
+ * because cashiers tied on a higher step use it up (two tied at 2nd → no 3rd). `vacant`: there
+ * are not enough eligible cashiers.
+ */
+export const PodiumStepStatus = {
+  Filled: 'filled',
+  CoveredByTie: 'covered-by-tie',
+  Vacant: 'vacant',
+} as const;
+
+export type PodiumStepStatus = (typeof PodiumStepStatus)[keyof typeof PodiumStepStatus];
+
+export const podiumStepSchema = z.object({
+  position: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  status: z.enum(PodiumStepStatus),
+  /** Cashiers on this step (several when tied); empty unless `filled`. Their `position` is the podium one. */
+  cashiers: z.array(rankingEntrySchema),
+});
+
+export type PodiumStep = z.infer<typeof podiumStepSchema>;
+
+/** Deterministic observation rules (see docs/BUSINESS_RULES.md). */
+export const ObservationRule = {
+  /** A cashier at podium position 1. */
+  TopResult: 'O1',
+  /** Many opportunities, conversion below the view's general effectiveness. */
+  ManyOpportunitiesLowConversion: 'O2',
+  /** Best and worst calculable effectiveness ≥ 10 points apart. */
+  RelevantGap: 'O3',
+  /** Effectiveness ≥ the view's, with fewer than 30 tickets. */
+  NotableLowVolume: 'O4',
+  /** Activadas without any aceptada. */
+  NoAccepted: 'O5',
+  /** At least one podium step vacant for lack of eligible cashiers. */
+  IncompletePodium: 'O6',
+} as const;
+
+export type ObservationRule = (typeof ObservationRule)[keyof typeof ObservationRule];
+
+/** A deterministic observation. Spanish texts built by the backend; they never attribute causes. */
+export const observationSchema = z.object({
+  rule: z.enum(ObservationRule),
+  /** Present when the observation concerns one cashier. */
+  cashierKey: z.string().min(1).optional(),
+  fact: z.string().min(1),
+  interpretation: z.string().min(1),
+  recommendation: z.string().min(1),
+});
+
+export type Observation = z.infer<typeof observationSchema>;
+
+export const viewSummarySchema = z.object({
+  period: importResultSchema.shape.period,
+  cashierCount: count,
+  shiftCount: count,
+  tickets: count,
+  activadas: count,
+  aceptadas: count,
+  /** On the view totals. */
+  effectiveness: effectivenessSchema,
+});
+
+export type ViewSummary = z.infer<typeof viewSummarySchema>;
+
+/** One analysis view: a single branch (`branch-<code>`) or every branch together (`all`). */
+export const analysisViewSchema = z.object({
+  id: z.string().regex(/^(branch-[1-9]\d*|all)$/, 'Expected branch-<code> or all'),
+  /** Spanish, user-facing (`Almirante`, `Ambas sucursales`). */
+  label: z.string().min(1),
+  branchCodes: z.array(z.number().int().positive()).min(1),
+  summary: viewSummarySchema,
+  /** Every cashier of the view, best first. */
+  ranking: z.array(rankingEntrySchema),
+  /** Steps 1, 2 and 3, in that order. */
+  podium: z.tuple([podiumStepSchema, podiumStepSchema, podiumStepSchema]),
+  observations: z.array(observationSchema),
+});
+
+export type AnalysisView = z.infer<typeof analysisViewSchema>;
+
+/**
+ * Response of `POST /api/analysis`. Sprint 2 returned the `import` section; Sprint 3 adds the
+ * analysis `views` next to it as a new key, so clients that only read `import` keep working.
  */
 export const analysisResponseSchema = z.object({
   import: importResultSchema,
+  /** One view per branch (by code), then the combined view. */
+  views: z.array(analysisViewSchema),
 });
 
 export type AnalysisResponse = z.infer<typeof analysisResponseSchema>;

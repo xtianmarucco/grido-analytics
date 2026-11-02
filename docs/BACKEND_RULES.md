@@ -12,6 +12,11 @@ multipart upload ──► upload checks ──► readShiftRows ──► norma
                                        header, rows      period, branches
 ```
 
+`http/analysis-router.ts` then passes the import to `analyzeImport` (`apps/api/src/analysis`):
+`viewScopes` → `consolidateCashiers` / `summarizeView` → `rankCashiers` → `buildPodium` →
+`buildObservations`, and returns `{ import, views }`. Rules in
+[BUSINESS_RULES.md](BUSINESS_RULES.md).
+
 Everything happens in memory per request. Nothing is stored between requests.
 
 ## Upload checks (HTTP)
