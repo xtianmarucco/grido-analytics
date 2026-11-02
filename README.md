@@ -25,13 +25,14 @@ Development: `pnpm dev`, then open `http://127.0.0.1:5173`.
    **Vista** selector (no re-upload).
 3. Read top to bottom: summary cards, podium, observations (Dato / Interpretación /
    Recomendación), ranking (search by cashier, sort columns for reading; the official position
-   never changes) and the effectiveness chart.
+   never changes), **Control de caja** (cash share, Club Grido share, cash-count differences and
+   "Señal para revisar" items) and the effectiveness chart.
 4. Rows excluded from the file are listed under **Datos importados** (collapsed; a warning
    above the views links to it).
 5. **Descargar PDF · {vista}** / **Descargar Excel · {vista}** (under the view selector) download
    the report of the selected view, e.g. `grido-informe-ambas-sucursales-2026-10-19-al-2026-10-25.pdf`.
    The file is re-sent and recomputed by the local server; nothing is stored. The PDF is A4 and
-   printable; the Excel has the sheets Resumen, Ranking, Podio and Observaciones.
+   printable; the Excel has the sheets Resumen, Ranking, Podio, Observaciones and Control de caja.
 6. **Analizar otro archivo** replaces the whole result.
 
 ## Approved business rules (Sprint 0)
@@ -44,6 +45,7 @@ Development: `pnpm dev`, then open `http://127.0.0.1:5173`.
 | Podium        | Top 3 eligible (≥ 30 tickets and ≥ 1 aceptada); ties share a step; never enlarged       |
 | Views         | Almirante, Barranqueras, both branches; cashier names case-insensitive                  |
 | Validation    | Reject unreadable files, missing columns, mixed periods; invalid rows excluded + warned |
+| Cash control  | Shift alert at difference ≥ 1 % of cash; low-cash signal ≥ 10 points below slot peers   |
 
 Full detail: [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md).
 

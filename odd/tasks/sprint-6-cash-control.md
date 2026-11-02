@@ -50,7 +50,7 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 - [x] T3 `analysis/cash-control.ts`: indicators, shift alerts, low-cash signals; wired into `analyzeImport`.
 - [x] T4 Web: summary cards + `CashControl` section.
 - [x] T5 Exports: Excel sheet `Control de caja` + PDF section.
-- [ ] T6 Docs.
+- [x] T6 Docs.
 
 ## Delivery
 
@@ -68,8 +68,11 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 
 - T4 (delegated writer): RED — 13 web tests failed (`formatMoney`/`formatSignedMoney`/`formatDecimal`/`formatDayMonth` missing, 6 instead of 10 summary cards, `./CashControl` missing; upload tests failed on the response schema until the fixture shift got money fields). GREEN — web 88/88, web `tsc --noEmit` clean. Money format: `Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })` → `$ 1.234,56` / `-$ 6.000,00` (no-break space after `$`); differences use `signDisplay: 'exceptZero'` (`+$ 2.619,76`). Headless Chromium on the real file: 375 px and 1280 px `scrollWidth <= innerWidth`. Commit `7468c6f`.
 
-- T5 (delegated writer): RED — 10 export tests failed (no `Control de caja` sheet, no cash rows in `Resumen`, no PDF section/cards). GREEN — API 221/221, API `tsc --noEmit` clean. Excel money cells use numFmt `"$" #,##0.00`, percentages `0.00%` fractions, hours/rates/points `0.00`. PDF section placed after the ranking (dashboard order); amber `#B45309` for signals. Commit: see T6 entry.
+- T5 (delegated writer): RED — 10 export tests failed (no `Control de caja` sheet, no cash rows in `Resumen`, no PDF section/cards). GREEN — API 219/219, API `tsc --noEmit` clean. Excel money cells use numFmt `"$" #,##0.00`, percentages `0.00%` fractions, hours/rates/points `0.00`. PDF section placed after the ranking (dashboard order); amber `#B45309` for signals. Commit `4fb149d`.
+
+- T6 (delegated writer): passive documentation, no runnable RED (exception). Structural checks: `prettier --check` on docs; decision rows D-41–D-45 appended (no renumbering), each with the same column count as D-40. Commit: this docs commit.
+- Route: all tasks delegated direct (one writer; 2+ non-trivial files per task).
 
 ## Next step
 
-- Implement T6.
+- Final verification, then the user opens the single sprint PR. Sprint 5 review follow-ups (download revoke timing, stale export state across views) remain separate.

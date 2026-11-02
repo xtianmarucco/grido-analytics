@@ -9,8 +9,9 @@ first worksheet; column order does not matter and extra columns are ignored.
 
 A file missing any of these is rejected (`MISSING_COLUMNS`, listing them):
 
-`succodigo`, `sucursal`, `turno`, `usulogin`, `turiniciaturno`, `turcierre`, `totaltiquets`,
-`sv_noactivada`, `sv_rechazada`, `sv_aceptada`, `desde`, `hasta`.
+`succodigo`, `sucursal`, `turno`, `usulogin`, `turiniciaturno`, `turcierre`, `venta`,
+`turefectivo`, `turdiferencia`, `ventaclubgrido`, `totaltiquets`, `sv_noactivada`,
+`sv_rechazada`, `sv_aceptada`, `desde`, `hasta`.
 
 | Column                                                         | Accepted values                                 |
 | -------------------------------------------------------------- | ----------------------------------------------- |
@@ -18,6 +19,11 @@ A file missing any of these is rejected (`MISSING_COLUMNS`, listing them):
 | `sucursal`, `turno`                                            | Integer > 0 (numeric text accepted)             |
 | `totaltiquets`, `sv_noactivada`, `sv_rechazada`, `sv_aceptada` | Integer ≥ 0 (numeric text accepted)             |
 | `turiniciaturno`, `turcierre`, `desde`, `hasta`                | Excel date-time (or a plain date serial number) |
+| `venta`, `turefectivo`, `ventaclubgrido`                       | Decimal ≥ 0 (plain `1234.56` text accepted)     |
+| `turdiferencia`                                                | Decimal, any sign                               |
+
+Money is rounded to cents when read; grouped or currency text (`$ 1.234,56`) is invalid. An
+invalid value excludes the row with an `INVALID_VALUE` warning.
 
 Formula cells use their cached result; rich text and hyperlinks use their text; error cells
 (`#N/A`, …) count as empty.
@@ -51,13 +57,16 @@ Formula cells use their cached result; rich text and hyperlinks use their text; 
 | `porcsvaceptada`      | System %, truncated integer  | No   |
 | `porcsvaceptadatotal` | System %, truncated integer  | No   |
 
-## Money (ignored in the MVP)
+## Money (cash control, Sprint 6)
 
-| Column                                                                               | Meaning                                            |
-| ------------------------------------------------------------------------------------ | -------------------------------------------------- |
-| `venta`                                                                              | Sum of the payment columns                         |
-| `turefectivo`, `turtarjeta`, `turtickets`, `turctacte`, `turmercadopago`, `turotros` | Payment methods                                    |
-| `turtotalcaja`, `turcajateorica`, `turdiferencia`                                    | Cash count; `diferencia = totalcaja − cajateorica` |
-| `ventaclubgrido`, `porcclubgrido`                                                    | Club Grido sales                                   |
+| Column                                                                | Meaning                                                         | Used |
+| --------------------------------------------------------------------- | --------------------------------------------------------------- | ---- |
+| `venta`                                                               | Ticketed sales (sum of the payment columns)                     | Yes  |
+| `turefectivo`                                                         | Cash sales                                                      | Yes  |
+| `turtarjeta`, `turtickets`, `turctacte`, `turmercadopago`, `turotros` | Other payment methods                                           | No   |
+| `turdiferencia`                                                       | Cash-count difference (`totalcaja − cajateorica`; − = faltante) | Yes  |
+| `turtotalcaja`, `turcajateorica`                                      | Cash count                                                      | No   |
+| `ventaclubgrido`                                                      | Club Grido sales                                                | Yes  |
+| `porcclubgrido`                                                       | Club Grido % of the shift (= `ventaclubgrido / venta`)          | No   |
 
 Real files contain employee names. Never commit them; tests use anonymized fixtures.

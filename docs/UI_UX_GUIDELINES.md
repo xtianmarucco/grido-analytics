@@ -167,15 +167,18 @@ ranking switches to cards below `md` instead of scrolling a wide table.
 All formatting uses `es-AR` and lives in the web formatting helpers (see
 [FRONTEND_RULES.md](FRONTEND_RULES.md)); it never changes values, only presents them.
 
-| Value          | Rule                                                  | Example                   |
-| -------------- | ----------------------------------------------------- | ------------------------- |
-| Effectiveness  | 2 decimals, `es-AR`, then `" %"` (space, as backend)  | `18,87 %`, `0,00 %`       |
-| `null` effect. | Text "No calculable" in `muted-foreground`, no `%`    | `No calculable`           |
-| Counts         | Integer, thousands separator                          | `1.234`, `12.345`         |
-| Date           | `dd/mm/yyyy`, sliced from the string, no `new Date()` | `19/10/2026`              |
-| Period         | `from – to` with an en dash and spaces                | `19/10/2026 – 25/10/2026` |
-| Position       | Ordinal number from the API                           | `1.º`, or `1` in table    |
-| Branch list    | Branch names joined by `, ` (combined view)           | `Almirante, Barranqueras` |
+| Value           | Rule                                                                                            | Example                     |
+| --------------- | ----------------------------------------------------------------------------------------------- | --------------------------- |
+| Effectiveness   | 2 decimals, `es-AR`, then `" %"` (space, as backend)                                            | `18,87 %`, `0,00 %`         |
+| `null` effect.  | Text "No calculable" in `muted-foreground`, no `%`                                              | `No calculable`             |
+| Counts          | Integer, thousands separator                                                                    | `1.234`, `12.345`           |
+| Date            | `dd/mm/yyyy`, sliced from the string, no `new Date()`                                           | `19/10/2026`                |
+| Period          | `from – to` with an en dash and spaces                                                          | `19/10/2026 – 25/10/2026`   |
+| Position        | Ordinal number from the API                                                                     | `1.º`, or `1` in table      |
+| Branch list     | Branch names joined by `, ` (combined view)                                                     | `Almirante, Barranqueras`   |
+| Money           | `Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })` (no-break space after `$`) | `$ 1.234,56`, `-$ 6.000,00` |
+| Cash difference | Same, with `signDisplay: 'exceptZero'`                                                          | `+$ 2.619,76`, `$ 0,00`     |
+| Short date      | `dd/mm`, sliced from the wall-clock string                                                      | `21/10`                     |
 
 Figures do not wrap: cells and labels holding a number use `whitespace-nowrap`.
 
@@ -192,7 +195,8 @@ Glossary used in labels: **Tickets**, **Sobreventas activadas**, **Sobreventas a
 
 ## 6. Page layout
 
-Order inside a view: summary → podium → observations → ranking → chart → "Datos importados".
+Order inside a view: summary → podium → observations → ranking → cash control → chart →
+"Datos importados".
 Recognition (podium) comes before detail; observations sit near the podium because they
 explain it.
 
@@ -270,8 +274,10 @@ explain it.
 
 ### 7.2 Summary cards
 
-Six cards: Período, Tickets, Sobreventas activadas, Sobreventas aceptadas, Efectividad general,
-Cajeros (with "N turnos" as caption). Each card: small accent icon, label (`text-sm
+Ten cards: Período, Tickets, Sobreventas activadas, Sobreventas aceptadas, Efectividad general,
+Cajeros (with "N turnos" as caption), % efectivo, % Club Grido, Diferencia de caja (net, with
+"Faltante … · Sobrante …" caption) and Ticket promedio (Sprint 6). Grid: 2 columns on phone,
+3 at `md`, 5 at `lg`; money figures are one size smaller so two fit side by side at 375 px. Each card: small accent icon, label (`text-sm
 muted-foreground`), figure (`text-3xl tabular-nums`). Efectividad general `null` → "No
 calculable" in muted tone. No trend arrows or colors judging the value.
 
@@ -372,6 +378,22 @@ A list of cards in API order. Each card:
 | O6   | Podio incompleto                | `Info`           | neutral (muted)   |
 
 - No observations: "No hay observaciones para esta vista."
+
+### 7.5b Cash control (Sprint 6)
+
+Section "Control de caja" right after the ranking:
+
+- Limitation note (info icon, muted): "Estos datos solo incluyen ventas tickeadas; las señales
+  indican qué revisar, no prueban irregularidades."
+- Two lists side by side at `lg` (stacked below): "Diferencias de caja para revisar" (date
+  `dd/mm` · slot · cashier, signed difference, % of cash, API message) and "Efectivo bajo frente
+  al resto del horario" (slot · cashier, cashier vs rest %, points, API message). In the
+  combined view each item starts with its branch. Empty list → "Sin señales esta semana".
+- Each item: card with an amber left border (`--warning`) and a `warning` badge
+  "Señal para revisar" with `TriangleAlert`. Never the destructive red; texts are shown as-is.
+- "Indicadores por cajero": table at ≥ 768 px (Cajero, Ventas, % efectivo, % Club Grido,
+  Diferencia de caja with "N turnos a revisar" in amber, Ticket promedio, Tickets por hora with
+  the per-slot rates), cards on phone, same pattern as the ranking.
 
 ### 7.6 Effectiveness chart
 
