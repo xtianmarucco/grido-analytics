@@ -58,11 +58,17 @@ describe('saveBlob', () => {
     }
   });
 
-  it('leaves the real URL global untouched', () => {
-    stubObjectUrls();
-    vi.unstubAllGlobals();
+  it('revokes with the URL API captured at download time, even after globals are restored', () => {
+    vi.useFakeTimers();
+    try {
+      const { revokeObjectURL } = stubObjectUrls();
+      saveBlob(new Blob(['x']), 'report.pdf');
+      vi.unstubAllGlobals();
 
-    expect(vi.isMockFunction(URL.createObjectURL)).toBe(false);
-    expect(vi.isMockFunction(URL.revokeObjectURL)).toBe(false);
+      expect(() => vi.advanceTimersByTime(REVOKE_DELAY_MS)).not.toThrow();
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:report');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
