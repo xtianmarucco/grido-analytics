@@ -1,5 +1,12 @@
-import type { ImportResult, ImportWarning } from '@grido/shared';
-import { AlertCircle, FileSpreadsheet, Loader2, Upload } from 'lucide-react';
+import type { ImportWarning } from '@grido/shared';
+import {
+  AlertCircle,
+  CheckCircle2,
+  FileSpreadsheet,
+  Loader2,
+  RotateCcw,
+  Upload,
+} from 'lucide-react';
 import { type DragEvent, useId, useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -7,14 +14,13 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-import { ImportPreview } from './ImportPreview';
 import { plural } from '@/lib/plural';
 import { WarningList } from './WarningList';
 
 export type UploadState =
   | { kind: 'idle' }
   | { kind: 'processing'; fileName: string }
-  | { kind: 'success'; fileName: string; result: ImportResult }
+  | { kind: 'success'; fileName: string; shiftCount: number; warningCount: number }
   | { kind: 'error'; fileName: string; message: string; warnings: ImportWarning[] };
 
 export interface UploadAnalysisViewProps {
@@ -27,14 +33,14 @@ const ACCEPT = '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetm
 function statusText(state: UploadState): string {
   if (state.kind === 'processing') return `Procesando ${state.fileName}…`;
   if (state.kind !== 'success') return '';
-  const shifts = plural(state.result.shifts.length, 'turno procesado', 'turnos procesados');
-  const warnings = state.result.warnings.length;
+  const shifts = plural(state.shiftCount, 'turno procesado', 'turnos procesados');
+  const warnings = state.warningCount;
   return warnings === 0
     ? `${shifts}.`
     : `${shifts}, ${plural(warnings, 'advertencia', 'advertencias')}.`;
 }
 
-/** Presentational: upload zone, live status, rejection details and the import preview. */
+/** Presentational: upload zone, live status and rejection details. Results render below it. */
 export function UploadAnalysisView({ state, onFileSelected }: UploadAnalysisViewProps) {
   const processing = state.kind === 'processing';
 
@@ -50,18 +56,29 @@ export function UploadAnalysisView({ state, onFileSelected }: UploadAnalysisView
       <CardContent className="flex flex-col gap-4">
         {state.kind === 'success' ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="flex items-center gap-2 text-sm">
-              <FileSpreadsheet className="size-4 text-success" aria-hidden />
-              <span className="font-medium">{state.fileName}</span>
+            <p className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span className="flex min-w-0 items-center gap-2">
+                <FileSpreadsheet className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <span className="font-medium break-all">{state.fileName}</span>
+              </span>
+              <span className="flex items-center gap-1 text-success">
+                <CheckCircle2 className="size-4" aria-hidden />
+                Procesado
+              </span>
             </p>
             <FilePicker
-              label="Reemplazar archivo"
+              label="Analizar otro archivo"
+              icon={RotateCcw}
               variant="outline"
               onFileSelected={onFileSelected}
             />
           </div>
         ) : (
-          <DropZone disabled={processing} onFileSelected={onFileSelected} />
+          <DropZone
+            label={state.kind === 'error' ? 'Seleccionar otro archivo' : 'Seleccionar archivo'}
+            disabled={processing}
+            onFileSelected={onFileSelected}
+          />
         )}
 
         <p
@@ -85,8 +102,6 @@ export function UploadAnalysisView({ state, onFileSelected }: UploadAnalysisView
             <WarningList warnings={state.warnings} />
           </>
         )}
-
-        {state.kind === 'success' && <ImportPreview result={state.result} />}
       </CardContent>
     </Card>
   );
@@ -94,13 +109,20 @@ export function UploadAnalysisView({ state, onFileSelected }: UploadAnalysisView
 
 interface FilePickerProps {
   label: string;
+  icon?: typeof Upload;
   variant?: 'default' | 'outline';
   disabled?: boolean;
   onFileSelected: (file: File) => void;
 }
 
 /** Native file input (keyboard and screen-reader friendly) styled through its label. */
-function FilePicker({ label, variant = 'default', disabled, onFileSelected }: FilePickerProps) {
+function FilePicker({
+  label,
+  icon: Icon = Upload,
+  variant = 'default',
+  disabled,
+  onFileSelected,
+}: FilePickerProps) {
   const id = useId();
   return (
     <div>
@@ -124,7 +146,7 @@ function FilePicker({ label, variant = 'default', disabled, onFileSelected }: Fi
           'cursor-pointer peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring peer-disabled:pointer-events-none peer-disabled:opacity-50',
         )}
       >
-        <Upload aria-hidden />
+        <Icon aria-hidden />
         {label}
       </label>
     </div>
@@ -132,9 +154,11 @@ function FilePicker({ label, variant = 'default', disabled, onFileSelected }: Fi
 }
 
 function DropZone({
+  label,
   disabled,
   onFileSelected,
 }: {
+  label: string;
   disabled: boolean;
   onFileSelected: (file: File) => void;
 }) {
@@ -165,7 +189,7 @@ function DropZone({
     >
       <FileSpreadsheet className="size-8 text-muted-foreground" aria-hidden />
       <p className="text-sm text-muted-foreground">Arrastre el archivo aquí o</p>
-      <FilePicker label="Seleccionar archivo" disabled={disabled} onFileSelected={onFileSelected} />
+      <FilePicker label={label} disabled={disabled} onFileSelected={onFileSelected} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { ErrorCode, type ImportWarning, importWarningSchema } from '@grido/share
 import { useState } from 'react';
 import { z } from 'zod';
 
+import { AnalysisDashboard } from '@/features/analysis/AnalysisDashboard';
 import { ApiError, ClientErrorCode } from '@/lib/api';
 
 import { UploadAnalysisView, type UploadState } from './UploadAnalysisView';
@@ -32,7 +33,10 @@ function errorWarnings(error: unknown): ImportWarning[] {
   return parsed.success ? parsed.data.warnings : [];
 }
 
-/** Container: keeps the selected file (exports will re-send it) and maps the upload mutation. */
+/**
+ * Container: keeps the selected file (Sprint 5 exports will re-send it), maps the upload mutation
+ * and shows the dashboard for a successful result. Each upload replaces the whole result.
+ */
 export function UploadAnalysis() {
   const [file, setFile] = useState<File | null>(null);
   const upload = useAnalysisUpload();
@@ -55,8 +59,21 @@ export function UploadAnalysis() {
       warnings: errorWarnings(upload.error),
     };
   } else {
-    state = { kind: 'success', fileName: file.name, result: upload.data.import };
+    state = {
+      kind: 'success',
+      fileName: file.name,
+      shiftCount: upload.data.import.shifts.length,
+      warningCount: upload.data.import.warnings.length,
+    };
   }
 
-  return <UploadAnalysisView state={state} onFileSelected={selectFile} />;
+  return (
+    <div className="flex flex-col gap-8">
+      <UploadAnalysisView state={state} onFileSelected={selectFile} />
+      {state.kind === 'success' && upload.data && (
+        // A new key per upload resets the selected view and the disclosure.
+        <AnalysisDashboard key={upload.submittedAt} analysis={upload.data} />
+      )}
+    </div>
+  );
 }

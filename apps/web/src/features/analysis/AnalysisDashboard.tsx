@@ -15,9 +15,10 @@ export interface AnalysisDashboardProps {
   analysis: AnalysisResponse;
 }
 
-/** Container: holds the selected view. Switching views never triggers a request. */
+/** Container: holds the selected view and the "Datos importados" disclosure. No requests. */
 export function AnalysisDashboard({ analysis }: AnalysisDashboardProps) {
   const [selectedViewId, setSelectedViewId] = useState(() => defaultViewId(analysis.views));
+  const [importedOpen, setImportedOpen] = useState(false);
   const view = analysis.views.find((candidate) => candidate.id === selectedViewId);
 
   return (
@@ -26,6 +27,8 @@ export function AnalysisDashboard({ analysis }: AnalysisDashboardProps) {
       views={analysis.views}
       importResult={analysis.import}
       onSelectView={setSelectedViewId}
+      importedOpen={importedOpen}
+      onImportedOpenChange={setImportedOpen}
     />
   );
 }
