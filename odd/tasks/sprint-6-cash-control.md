@@ -80,6 +80,13 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 
 - T7 (inline, parent): RED `vitest run src/import/normalize-shifts.test.ts` → 1 failed (same turno in two branches excluded as conflicting duplicate); web RED `CashControl.test.tsx` → duplicate-key console error. GREEN: api 220/220, web 89/89; `pnpm typecheck|lint|format:check|test|build` ok. Real file: 28 shifts, 0 warnings, rankings 3/3/5 (unchanged). Docs: BACKEND_RULES, BUSINESS_RULES, DATA_DICTIONARY, DECISIONS.
 
+- T7 assess (base 6d79417): medium, review_due false, under_budget (112 lines).
+- Sprint 6 closed by the user on 2026-11-02. Delivery: single push of `feat/sprint-6-cash-control`; PR opened by the user on GitHub.
+
+## Status
+
+Closed.
+
 ## Next step
 
-- Final verification, then the user opens the single sprint PR. Sprint 5 review follow-ups (download revoke timing, stale export state across views) remain separate.
+- Sprint 7 (quality and delivery) planning; pending Sprint 5 review follow-ups (download revoke timing, stale export state across views, test global leak).
