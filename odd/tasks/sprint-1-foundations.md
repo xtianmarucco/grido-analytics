@@ -43,8 +43,8 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - [x] T2 `packages/shared`: error envelope + health zod schemas and types, with unit tests. (commit a5ab8c8)
 - [x] T3 `apps/api`: Express app on 127.0.0.1, `/api/health`, API 404, error handler; supertest tests (RED first). (commit 79baf12)
 - [x] T4 `apps/web`: Vite + React + Tailwind v4 + shadcn/ui + @fontsource + TanStack Query health status with connected/error states. (commit 91f32c8)
-- [x] T5 Production mode: Express serves `apps/web/dist` with SPA fallback; `pnpm start` builds and runs one process.
-- [ ] T6 Docs: `/docs` set listed in scope + README with Sprint 0 approved rules.
+- [x] T5 Production mode: Express serves `apps/web/dist` with SPA fallback; `pnpm start` builds and runs one process. (commit 211e7b2)
+- [x] T6 Docs: `/docs` set listed in scope + README with Sprint 0 approved rules.
 
 ## Routing
 
@@ -63,7 +63,8 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - T3 (delegated writer): `@grido/api` with `parseConfig` (HOST default 127.0.0.1, PORT default 3001), `createApp`, `/api/health`, `notFoundHandler`, `createErrorHandler` + `HttpError`, `server.ts`. RED: `pnpm --filter @grido/api test` failed (modules missing). GREEN: 9/9 tests (health 200 + schema, no x-powered-by, 404 NOT_FOUND, sync/async 500 INTERNAL_ERROR without leaking message/stack, HttpError mapping, config defaults/invalid port). typecheck, lint, format:check, build ok; compiled server smoke: health JSON and 404 envelope on 127.0.0.1.
 - T4 (delegated writer): `@grido/web` with Vite 8, React 19, Tailwind v4, shadcn/ui (manual setup, `components.json`; button, card, alert, badge), `@fontsource-variable/inter`, TanStack Query `useHealth` + container/presentational `ServerStatus`, `lib/api.ts` (`fetchHealth`, `ApiError`). UI copy in Spanish (see DECISIONS). Tests: 8/8 (api client: ok, network failure, non-JSON 502, envelope, invalid body; ServerStatus: connected, error + retry button, recovery after retry). typecheck, lint, format:check, build ok. Dev smoke: `pnpm dev` → `GET http://127.0.0.1:5173/api/health` proxied to Express. pnpm 11 auto-added `minimumReleaseAgeExclude` entries for `globals` and `@tanstack/*` (releases newer than the release-age policy).
 - T5 (delegated writer): `createStaticWebRouter` (hashed `/assets` cached 1y immutable, missing asset → JSON 404, SPA fallback for HTML GET/HEAD outside `/api`, `index.html` no-cache); `/api/*` 404 mounted before static. Production mode = `apps/web/dist/index.html` exists (override `WEB_DIST_DIR`), chosen over `NODE_ENV` so `pnpm start` works on Windows without env tooling. RED: 3 failing static tests; GREEN: api 15/15. Smoke via `pnpm start`: health JSON, `/api/nope` 404, `/` and `/foo/bar` contain "Grido Analytics".
+- T6 (delegated writer): `docs/` PROJECT_OVERVIEW, REQUIREMENTS, ARCHITECTURE, BUSINESS_RULES, DATA_DICTIONARY, API_CONTRACT, DECISIONS (D-1..D-17, incl. Spanish UI copy D-7 and web-dist detection D-6), DEVELOPMENT_WORKFLOW, plus README with Sprint 0 rules. Structural check: `pnpm format:check` ok. Passive docs, no RED. Commit hash recorded in the final docs(odd) commit.
 
 ## Next step
 
-- Implement T6.
+- Parent: native review/delivery decision; chain strategy before PR planning (forecast exceeded ~400 lines).
