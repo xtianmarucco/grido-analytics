@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { formatPeriod } from '@/lib/format';
 import { plural } from '@/lib/plural';
 
+import { CashControl } from './CashControl';
 import { EffectivenessChart } from './EffectivenessChart';
 import { IMPORTED_DATA_ID, ImportedData } from './ImportedData';
 import { ObservationList } from './ObservationList';
@@ -28,7 +29,7 @@ export interface AnalysisDashboardViewProps {
 
 /**
  * Presentational: the selected view in the guide order (§6): summary → podium → observations →
- * ranking → chart → "Datos importados".
+ * ranking → cash control → chart → "Datos importados".
  */
 export function AnalysisDashboardView({
   view,
@@ -85,7 +86,7 @@ export function AnalysisDashboardView({
             {`Mostrando ${view.label}`}
           </p>
 
-          <SummaryCards summary={view.summary} />
+          <SummaryCards summary={view.summary} cash={view.cashControl.summary} />
           {view.ranking.length === 0 ? (
             <>
               <p className="flex items-center justify-center gap-2 rounded-xl border bg-muted px-4 py-8 text-center text-sm text-muted-foreground">
@@ -99,6 +100,7 @@ export function AnalysisDashboardView({
               <Podium steps={view.podium} />
               <ObservationList observations={view.observations} ranking={view.ranking} />
               <RankingTable key={view.id} entries={view.ranking} branchNames={branchNames} />
+              <CashControl cashControl={view.cashControl} combined={view.branchCodes.length > 1} />
               <EffectivenessChart entries={view.ranking} />
             </>
           )}

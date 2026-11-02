@@ -48,7 +48,7 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 - [x] T1 Shared contract (normalized shift money fields + slot; view `cashControl`).
 - [x] T2 Import: required money columns, money parsing, validation.
 - [x] T3 `analysis/cash-control.ts`: indicators, shift alerts, low-cash signals; wired into `analyzeImport`.
-- [ ] T4 Web: summary cards + `CashControl` section.
+- [x] T4 Web: summary cards + `CashControl` section.
 - [ ] T5 Exports: Excel sheet `Control de caja` + PDF section.
 - [ ] T6 Docs.
 
@@ -64,8 +64,10 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 
 - T2 (delegated writer): RED — 30 new import tests failed (`parseMoney`/`parseNonNegativeMoney` missing, no money fields or slot on shifts, money columns not required). GREEN — `src/import` + router suites: 88 passed; the 3 router 200-response tests stay red until T3 adds `cashControl` (response schema requires it). Money is rounded to cents at parse (`toPrecision(15)` guards binary artifacts); text amounts accepted only as plain dot decimals. Commit `dd505b9`.
 
-- T3 (delegated writer): RED — `cash-control.test.ts` failed (`./cash-control.js` missing) and `analyze.test.ts` failed schema validation (no `cashControl`). GREEN — API 211/211 tests, API `tsc --noEmit` clean. Thresholds on integer cents; the 10-point signal uses exact BigInt cross-multiplication. Real file (numbers only) matches every expected value: % efectivo 39,44 / 40,42 / 40,05; % Club 63,09 / 54,78 / 57,88; net −1.680,17 / −7.250,64 / −8.930,81; alerts 1,00 / 1,46 / 3,81; 1 signal (branch 1, día, 12,52 pts). Commit: see T4 entry.
+- T3 (delegated writer): RED — `cash-control.test.ts` failed (`./cash-control.js` missing) and `analyze.test.ts` failed schema validation (no `cashControl`). GREEN — API 211/211 tests, API `tsc --noEmit` clean. Thresholds on integer cents; the 10-point signal uses exact BigInt cross-multiplication. Real file (numbers only) matches every expected value: % efectivo 39,44 / 40,42 / 40,05; % Club 63,09 / 54,78 / 57,88; net −1.680,17 / −7.250,64 / −8.930,81; alerts 1,00 / 1,46 / 3,81; 1 signal (branch 1, día, 12,52 pts). Commit `65e3411`.
+
+- T4 (delegated writer): RED — 13 web tests failed (`formatMoney`/`formatSignedMoney`/`formatDecimal`/`formatDayMonth` missing, 6 instead of 10 summary cards, `./CashControl` missing; upload tests failed on the response schema until the fixture shift got money fields). GREEN — web 88/88, web `tsc --noEmit` clean. Money format: `Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })` → `$ 1.234,56` / `-$ 6.000,00` (no-break space after `$`); differences use `signDisplay: 'exceptZero'` (`+$ 2.619,76`). Headless Chromium on the real file: 375 px and 1280 px `scrollWidth <= innerWidth`. Commit: see T5 entry.
 
 ## Next step
 
-- Implement T4.
+- Implement T5.
