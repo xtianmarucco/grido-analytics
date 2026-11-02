@@ -1,5 +1,6 @@
 import type { AnalysisView, ImportResult } from '@grido/shared';
 
+import { buildCashControl } from './cash-control.js';
 import { consolidateCashiers, summarizeView, viewScopes } from './consolidate.js';
 import { buildObservations } from './observations.js';
 import { buildPodium } from './podium.js';
@@ -12,6 +13,7 @@ export function analyzeImport(result: ImportResult): AnalysisView[] {
     const ranking = rankCashiers(consolidateCashiers(shifts));
     const podium = buildPodium(ranking);
     const observations = buildObservations({ label, summary, ranking, podium });
-    return { id, label, branchCodes, summary, ranking, podium, observations };
+    const cashControl = buildCashControl(shifts);
+    return { id, label, branchCodes, summary, ranking, podium, observations, cashControl };
   });
 }

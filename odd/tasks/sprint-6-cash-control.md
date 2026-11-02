@@ -47,7 +47,7 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 
 - [x] T1 Shared contract (normalized shift money fields + slot; view `cashControl`).
 - [x] T2 Import: required money columns, money parsing, validation.
-- [ ] T3 `analysis/cash-control.ts`: indicators, shift alerts, low-cash signals; wired into `analyzeImport`.
+- [x] T3 `analysis/cash-control.ts`: indicators, shift alerts, low-cash signals; wired into `analyzeImport`.
 - [ ] T4 Web: summary cards + `CashControl` section.
 - [ ] T5 Exports: Excel sheet `Control de caja` + PDF section.
 - [ ] T6 Docs.
@@ -62,8 +62,10 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 
 - T1 (delegated writer): RED — `packages/shared` vitest: `analysis.test.ts` failed to load (`ShiftSlot` undefined) with the new contract tests. GREEN — 53/53 shared tests, `tsc --noEmit` OK. Field names use camelCase (`turEfectivo` for `turefectivo`). API/web typecheck is expected to fail until T2–T4 fill the new required fields. Commit `3bdc73b`.
 
-- T2 (delegated writer): RED — 30 new import tests failed (`parseMoney`/`parseNonNegativeMoney` missing, no money fields or slot on shifts, money columns not required). GREEN — `src/import` + router suites: 88 passed; the 3 router 200-response tests stay red until T3 adds `cashControl` (response schema requires it). Money is rounded to cents at parse (`toPrecision(15)` guards binary artifacts); text amounts accepted only as plain dot decimals. Commit: see T3 entry.
+- T2 (delegated writer): RED — 30 new import tests failed (`parseMoney`/`parseNonNegativeMoney` missing, no money fields or slot on shifts, money columns not required). GREEN — `src/import` + router suites: 88 passed; the 3 router 200-response tests stay red until T3 adds `cashControl` (response schema requires it). Money is rounded to cents at parse (`toPrecision(15)` guards binary artifacts); text amounts accepted only as plain dot decimals. Commit `dd505b9`.
+
+- T3 (delegated writer): RED — `cash-control.test.ts` failed (`./cash-control.js` missing) and `analyze.test.ts` failed schema validation (no `cashControl`). GREEN — API 211/211 tests, API `tsc --noEmit` clean. Thresholds on integer cents; the 10-point signal uses exact BigInt cross-multiplication. Real file (numbers only) matches every expected value: % efectivo 39,44 / 40,42 / 40,05; % Club 63,09 / 54,78 / 57,88; net −1.680,17 / −7.250,64 / −8.930,81; alerts 1,00 / 1,46 / 3,81; 1 signal (branch 1, día, 12,52 pts). Commit: see T4 entry.
 
 ## Next step
 
-- Implement T3.
+- Implement T4.
