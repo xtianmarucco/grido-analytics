@@ -88,6 +88,12 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
 - Native review (2026-11-02): assessed medium (`executable_change` apps/web/index.html), review_due slice_budget_reached (3217 lines over 7a83e80..5e38bd9). Consent granted, but START stopped with `lens_context_budget_exceeded` (no authority created). Split into two candidates was offered; the user chose to review the sprint manually instead ("se ve muy bien"). No native receipt for this sprint.
 - Open: Vite chunk-size warning (726 kB, Recharts) — lazy-load the chart if desired.
 
+- Sprint 4 closed by the user on 2026-11-02 after manual review. Delivery: single push of `feat/sprint-4-dashboard`; PR opened by the user on GitHub.
+
+## Status
+
+Closed.
+
 ## Next step
 
-- Review the dashboard; open the Sprint 4 PR (single PR per sprint).
+- Sprint 5 (PDF and Excel exports) planning.
