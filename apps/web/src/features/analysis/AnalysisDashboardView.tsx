@@ -2,6 +2,7 @@ import type { AnalysisView, ImportResult } from '@grido/shared';
 
 import { formatPeriod } from '@/lib/format';
 
+import { ObservationList } from './ObservationList';
 import { Podium } from './Podium';
 import { RankingTable } from './RankingTable';
 import { SummaryCards } from './SummaryCards';
@@ -42,6 +43,7 @@ export function AnalysisDashboardView({
       </div>
       <SummaryCards summary={view.summary} />
       <Podium steps={view.podium} />
+      <ObservationList observations={view.observations} ranking={view.ranking} />
       <RankingTable key={view.id} entries={view.ranking} branchNames={branchNames} />
       <p aria-live="polite" className="sr-only">
         {`Mostrando ${view.label}`}
