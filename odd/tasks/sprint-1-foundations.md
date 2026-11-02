@@ -40,8 +40,8 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 ## Tasks
 
 - [x] T1 Monorepo root: workspace, base tsconfig, ESLint, Prettier, `.gitignore`, `.env.example`, root scripts. (commit c761a46)
-- [x] T2 `packages/shared`: error envelope + health zod schemas and types, with unit tests.
-- [ ] T3 `apps/api`: Express app on 127.0.0.1, `/api/health`, API 404, error handler; supertest tests (RED first).
+- [x] T2 `packages/shared`: error envelope + health zod schemas and types, with unit tests. (commit a5ab8c8)
+- [x] T3 `apps/api`: Express app on 127.0.0.1, `/api/health`, API 404, error handler; supertest tests (RED first).
 - [ ] T4 `apps/web`: Vite + React + Tailwind v4 + shadcn/ui + @fontsource + TanStack Query health status with connected/error states.
 - [ ] T5 Production mode: Express serves `apps/web/dist` with SPA fallback; `pnpm start` builds and runs one process.
 - [ ] T6 Docs: `/docs` set listed in scope + README with Sprint 0 approved rules.
@@ -60,7 +60,8 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - Engram mirror `odd/sprint-1-foundations/tasks`: PENDING (host session registration could not be confirmed on 2026-11-02); resync when available.
 - T1 (delegated writer): root workspace, tsconfig.base, ESLint 10 flat config, Prettier, .gitignore, .env.example, .nvmrc, root scripts. Checks: `pnpm install` ok, `pnpm lint` ok, `pnpm format:check` ok; typecheck/test have no projects yet. TypeScript pinned to ~6.0.3 because typescript-eslint 8.72 requires <6.1. No RED applicable (config only).
 - T2 (delegated writer): `@grido/shared` with `errorResponseSchema` (+ `ErrorCode`) and `healthResponseSchema`. RED: `pnpm --filter @grido/shared test` failed (2 files, modules missing). GREEN: 7/7 tests pass; `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, shared `build` ok. Commit hash recorded in the next task commit.
+- T3 (delegated writer): `@grido/api` with `parseConfig` (HOST default 127.0.0.1, PORT default 3001), `createApp`, `/api/health`, `notFoundHandler`, `createErrorHandler` + `HttpError`, `server.ts`. RED: `pnpm --filter @grido/api test` failed (modules missing). GREEN: 9/9 tests (health 200 + schema, no x-powered-by, 404 NOT_FOUND, sync/async 500 INTERNAL_ERROR without leaking message/stack, HttpError mapping, config defaults/invalid port). typecheck, lint, format:check, build ok; compiled server smoke: health JSON and 404 envelope on 127.0.0.1.
 
 ## Next step
 
-- Implement T3.
+- Implement T4.
