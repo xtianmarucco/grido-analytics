@@ -44,7 +44,7 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
 
 - [x] T1 Design guide: `docs/UI_UX_GUIDELINES.md`, `docs/FRONTEND_RULES.md` (stop for approval).
 - [x] T2 Theme tokens, header, view selector.
-- [ ] T3 Summary cards.
+- [x] T3 Summary cards.
 - [ ] T4 Podium.
 - [ ] T5 Ranking table.
 - [ ] T6 Observations.
@@ -74,8 +74,9 @@ Out of scope: exports (Sprint 5), persistence, historical comparisons, recomputi
   first view) with period and an `aria-live` "Mostrando …" announcement; `<html lang="es-AR">`. The
   page header keeps title, subtitle and server status; the period sits next to the view selector
   (guide wireframe). RED: 5 failing tests + 2 missing modules; GREEN: 31/31 web tests.
+- T3 (previous commit `4ca022d`): `SummaryCards` — six cards (Período, Tickets, Sobreventas activadas, Sobreventas aceptadas, Efectividad general with "N aceptadas de M activadas", Cajeros with "N turnos"), 2/3/6-column grid, muted "No calculable"; `plural` moved to `lib/` and formats counts with `es-AR` grouping. RED: missing module; GREEN: 35/35 web tests.
 - Engram mirror `odd/sprint-4-dashboard/tasks`: PENDING (host session registration failing in this session).
 
 ## Next step
 
-- T3 summary cards.
+- T4 podium.

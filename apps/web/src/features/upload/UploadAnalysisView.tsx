@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { cn } from '@/lib/utils';
 
 import { ImportPreview } from './ImportPreview';
-import { plural } from './plural';
+import { plural } from '@/lib/plural';
 import { WarningList } from './WarningList';
 
 export type UploadState =

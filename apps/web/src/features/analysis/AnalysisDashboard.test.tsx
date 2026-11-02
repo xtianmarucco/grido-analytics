@@ -27,4 +27,21 @@ describe('AnalysisDashboard', () => {
     expect(screen.getByRole('radio', { name: 'Barranqueras' })).toBeChecked();
     expect(screen.getByText('Mostrando Barranqueras')).toBeInTheDocument();
   });
+
+  it('shows the summary of the selected view', async () => {
+    const [almirante, , all] = analysisResponse().views;
+    if (!almirante || !all) throw new Error('fixture');
+    const analysis = analysisResponse({
+      views: [
+        { ...almirante, summary: { ...almirante.summary, tickets: 500 } },
+        { ...all, summary: { ...all.summary, tickets: 2000 } },
+      ],
+    });
+    render(<AnalysisDashboard analysis={analysis} />);
+    const tickets = () => screen.getByRole('heading', { name: 'Tickets' }).closest('li');
+
+    expect(tickets()).toHaveTextContent('2.000');
+    await userEvent.click(screen.getByRole('radio', { name: 'Almirante' }));
+    expect(tickets()).toHaveTextContent('500');
+  });
 });

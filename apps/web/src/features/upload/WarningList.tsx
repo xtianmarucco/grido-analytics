@@ -1,7 +1,7 @@
 import type { ImportWarning } from '@grido/shared';
 import { TriangleAlert } from 'lucide-react';
 
-import { plural } from './plural';
+import { plural } from '@/lib/plural';
 
 /** Rows the import excluded or merged. Never hidden: every warning is listed. */
 export function WarningList({ warnings }: { warnings: readonly ImportWarning[] }) {
