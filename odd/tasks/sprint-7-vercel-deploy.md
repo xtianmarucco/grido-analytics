@@ -44,7 +44,7 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 
 - [x] T1 Vercel build layout + `vercel.json` + Express function entry.
 - [x] T2 Upload limit 4 MB + platform 413 handling.
-- [ ] T3 Sprint 5 download/export follow-ups + test cleanup.
+- [x] T3 Sprint 5 download/export follow-ups + test cleanup.
 - [ ] T4 `pnpm smoke <baseUrl>`.
 - [ ] T5 Docs (DEPLOYMENT, GUIA_DE_USO, README, DECISIONS, ARCHITECTURE).
 
@@ -64,6 +64,8 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 
 - T2 (delegated writer): RED 5 tests (shared limit + message 2, API 413 at 4 MB + 1 byte, web non-envelope 413 on upload and download 2, "hasta 4 MB" copy). GREEN: `MAX_UPLOAD_MEGABYTES`/`MAX_UPLOAD_BYTES`/`fileTooLargeMessage` in `@grido/shared` used by multer and the web client; shared 55, api 222, web 92 tests pass. Upload copy now "se procesa al momento y no se guarda" (it no longer runs on the owner's machine once deployed). D-47/D-48 added; 5 MB references in docs updated.
 
+- T3 (delegated writer): RED 3 (delayed revoke with fake timers, selector locked while generating, error not carried to another view). GREEN: `REVOKE_DELAY_MS = 30_000` in `apps/web/src/lib/download.ts`; `useIsGeneratingReport()` (React Query `useIsMutating` on key `report-download`) disables the `ViewSelector`; `ReportDownloads` keyed by view id resets its mutation state per view. Tests stub `URL` with a fresh subclass per test (the real global is never mutated) and rely on the shared `restoreAllMocks`/`unstubAllGlobals` in `afterEach`. Web 96 tests pass. Safari/Firefox download behaviour still to be confirmed by the owner (acceptance 4).
+
 ## Next step
 
-- Implement T3.
+- Implement T4.

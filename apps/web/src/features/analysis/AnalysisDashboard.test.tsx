@@ -1,9 +1,19 @@
-import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render as renderUi, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import type { ReactElement } from 'react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AnalysisDashboard } from './AnalysisDashboard';
 import { analysisResponse, view } from './fixtures';
+
+/** The dashboard reads the report-download mutation state, so it needs a QueryClient. */
+function render(ui: ReactElement) {
+  const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  return renderUi(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
+
+const file = new File(['PK'], 'turnos.xlsx');
 
 describe('AnalysisDashboard', () => {
   it('starts on the combined view and shows the period', () => {
@@ -52,5 +62,36 @@ describe('AnalysisDashboard', () => {
     expect(tickets()).toHaveTextContent('2.000');
     await userEvent.click(screen.getByRole('radio', { name: 'Almirante' }));
     expect(tickets()).toHaveTextContent('500');
+  });
+
+  it('locks the view selector while a report is generating', async () => {
+    let finish: (response: Response) => void = () => {};
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockReturnValue(new Promise<Response>((resolve) => (finish = resolve))),
+    );
+    render(<AnalysisDashboard analysis={analysisResponse()} file={file} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Descargar PDF · Ambas sucursales' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Generando…');
+    for (const radio of screen.getAllByRole('radio')) expect(radio).toBeDisabled();
+
+    finish(new Response('fail', { status: 500 }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    for (const radio of screen.getAllByRole('radio')) expect(radio).toBeEnabled();
+  });
+
+  it('does not carry a report error over to another view', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    render(<AnalysisDashboard analysis={analysisResponse()} file={file} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Descargar PDF · Ambas sucursales' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo generar el informe');
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Barranqueras' }));
+
+    expect(screen.getByRole('button', { name: 'Descargar PDF · Barranqueras' })).toBeEnabled();
+    expect(screen.queryByText('No se pudo generar el informe')).not.toBeInTheDocument();
   });
 });
