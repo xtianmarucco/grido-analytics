@@ -73,6 +73,10 @@ Routing: one delegated writer, one commit per task, RED first, no new dependenci
 - T6 (delegated writer): passive documentation, no runnable RED (exception). Structural checks: `prettier --check` on docs; decision rows D-41–D-45 appended (no renumbering), each with the same column count as D-40. Commit: this docs commit.
 - Route: all tasks delegated direct (one writer; 2+ non-trivial files per task).
 
+- Parent spot check: `cash-control-1280.png` reviewed — limitation note, amber "Señal para revisar" items (3 shift alerts, 1 low-cash signal), per-cashier table with slot tickets/hour.
+- Native review (2026-11-02): medium (`executable_change` apps/api/src/analysis/analyze.ts), review_due slice_budget_reached (2633 lines over d9bcb3a..HEAD). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-c375329170ccafcf).
+- Advisory: R3-alert-key-collision (WARNING, `apps/web/src/features/analysis/CashControl.tsx:70`: React key `turno` only). Parent finding while triaging: the import groups duplicates by `turno` alone (`apps/api/src/import/normalize-shifts.ts:201-221`), so shifts from different branches sharing a `turno` number would be treated as duplicates and excluded. Real ids are per-branch sequences (Almirante ~7120s, Barranqueras ~5840s) that could collide in the future; today the import makes turno globally unique, so the React key cannot collide yet.
+
 ## Next step
 
 - Final verification, then the user opens the single sprint PR. Sprint 5 review follow-ups (download revoke timing, stale export state across views) remain separate.
