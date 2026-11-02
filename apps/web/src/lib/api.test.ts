@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { ApiError, ClientErrorCode, fetchHealth } from './api';
+import { ApiError, ClientErrorCode, fetchHealth, uploadAnalysis } from './api';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -49,5 +49,48 @@ describe('fetchHealth', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ status: 'maybe' })));
 
     await expect(fetchHealth()).rejects.toMatchObject({ code: ClientErrorCode.InvalidResponse });
+  });
+});
+
+const analysis = {
+  import: {
+    period: { from: '2026-10-19', to: '2026-10-25' },
+    branches: [{ code: 1, name: 'Almirante', shiftCount: 0 }],
+    shifts: [],
+    warnings: [],
+    summary: { totalRows: 0, includedRows: 0, excludedRows: 0 },
+  },
+};
+
+describe('uploadAnalysis', () => {
+  it('posts the file as multipart field "file" and returns the parsed body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(analysis));
+    vi.stubGlobal('fetch', fetchMock);
+    const file = new File(['x'], 'turnos.xlsx');
+
+    await expect(uploadAnalysis(file)).resolves.toEqual(analysis);
+
+    const [path, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(path).toBe('/api/analysis');
+    expect(init.method).toBe('POST');
+    expect((init.body as FormData).get('file')).toBe(file);
+  });
+
+  it('surfaces the API code, Spanish message and details of a rejection', async () => {
+    const envelope = {
+      error: {
+        code: 'MISSING_COLUMNS',
+        message: 'Faltan columnas obligatorias: sv_aceptada.',
+        details: { missing: ['sv_aceptada'] },
+      },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(envelope, 422)));
+
+    await expect(uploadAnalysis(new File(['x'], 'turnos.xlsx'))).rejects.toMatchObject({
+      code: 'MISSING_COLUMNS',
+      message: 'Faltan columnas obligatorias: sv_aceptada.',
+      status: 422,
+      details: { missing: ['sv_aceptada'] },
+    });
   });
 });

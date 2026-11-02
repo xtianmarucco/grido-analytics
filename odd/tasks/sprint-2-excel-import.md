@@ -50,7 +50,7 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 - [x] T2 `apps/api/src/import`: read workbook buffer → raw rows, header normalization, required columns.
 - [x] T3 `apps/api/src/import`: row validation + normalization, duplicates, single-period check, warnings.
 - [x] T4 `apps/api/src/http`: multer upload, limits, signature check, `POST /api/analysis`, error mapping.
-- [ ] T5 `apps/web/src/features/upload`: upload UI, states, preview table, warnings, replace file.
+- [x] T5 `apps/web/src/features/upload`: upload UI, states, preview table, warnings, replace file.
 - [ ] T6 Docs update.
 
 ## Routing
@@ -69,8 +69,9 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 - T1 (delegated writer): RED `analysis.test.ts` failed (`Cannot find module './analysis.js'`); GREEN shared 19/19 passed, typecheck/lint/format clean. Commit `d5525b6`.
 - T2 (delegated writer): exceljs 4.4.0 added; `pnpm audit --prod` = 2 moderate (uuid <11.1.1 buffer arg, minimatch via archiver/unzipper glob), no high/critical, none on the read path. RED `read-workbook.test.ts` failed (`Cannot find module './errors.js'`); first GREEN run 12/13 (ZIP without workbook reported EMPTY_FILE → fixed: no worksheet = UNREADABLE_FILE); GREEN api 30/30. Added ZIP central-directory guard (declared uncompressed size ≤ 64 MB) before exceljs inflates. Commit `3f8d6fc`.
 - T3 (delegated writer): RED `normalize-shifts.test.ts` + `import-shift-workbook.test.ts` failed (`Cannot find module`); first GREEN run 33/36 (three fixtures had start after the default close; the close-before-start rule excluded them correctly → fixtures fixed); GREEN api 53/53. Manual check on the real file (not committed): 28 shifts, branches 1/2 with 14 each, period 2026-10-19..2026-10-25, 0 warnings, summary 28/28/0. Commit `90ce97a`.
-- T4 (delegated writer): multer 2.5.0 + @types/multer 2.3.0 added; audit unchanged (2 moderate). RED `analysis-router.test.ts` 17/18 failed (only GET 404 passed); GREEN api 71/71 on first implementation run. Memory storage only; multer/busboy errors mapped to 400/413/415. Commit: see T5 entry.
+- T4 (delegated writer): multer 2.5.0 + @types/multer 2.3.0 added; audit unchanged (2 moderate). RED `analysis-router.test.ts` 17/18 failed (only GET 404 passed); GREEN api 71/71 on first implementation run. Memory storage only; multer/busboy errors mapped to 400/413/415. Commit `8a569a4`.
+- T5 (delegated writer): RED `api.test.ts` (`uploadAnalysis is not a function`, 2 failed) and `features/upload/*.test.ts(x)` (`Failed to resolve import`); GREEN web 21/21. Added shadcn `table`, `--warning` token; health indicator moved to the header (compact). Commit: see T6 entry.
 
 ## Next step
 
-- Implement T5.
+- Implement T6.

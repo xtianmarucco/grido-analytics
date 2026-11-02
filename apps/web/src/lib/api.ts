@@ -1,4 +1,10 @@
-import { errorResponseSchema, healthResponseSchema, type HealthResponse } from '@grido/shared';
+import {
+  type AnalysisResponse,
+  analysisResponseSchema,
+  errorResponseSchema,
+  healthResponseSchema,
+  type HealthResponse,
+} from '@grido/shared';
 
 /** Client-side codes for failures that never reached (or never came back from) the API. */
 export const ClientErrorCode = {
@@ -12,6 +18,8 @@ export class ApiError extends Error {
     readonly code: string,
     message: string,
     readonly status?: number,
+    /** The envelope's `details`, when the API sent them. */
+    readonly details?: unknown,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -26,10 +34,14 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
-async function request<T>(path: string, parse: (body: unknown) => T): Promise<T> {
+async function request<T>(
+  path: string,
+  parse: (body: unknown) => T,
+  init: RequestInit = {},
+): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(path, { headers: { Accept: 'application/json' } });
+    response = await fetch(path, { ...init, headers: { Accept: 'application/json' } });
   } catch {
     throw new ApiError(ClientErrorCode.NetworkError, 'The server could not be reached');
   }
@@ -40,8 +52,8 @@ async function request<T>(path: string, parse: (body: unknown) => T): Promise<T>
     // The Vite dev proxy answers 5xx with a non-JSON body when Express is down.
     const envelope = errorResponseSchema.safeParse(body);
     if (envelope.success) {
-      const { code, message } = envelope.data.error;
-      throw new ApiError(code, message, response.status);
+      const { code, message, details } = envelope.data.error;
+      throw new ApiError(code, message, response.status, details);
     }
     throw new ApiError(
       ClientErrorCode.NetworkError,
@@ -63,4 +75,14 @@ async function request<T>(path: string, parse: (body: unknown) => T): Promise<T>
 
 export function fetchHealth(): Promise<HealthResponse> {
   return request('/api/health', (body) => healthResponseSchema.parse(body));
+}
+
+/** Uploads the shift-close Excel. The browser sets the multipart boundary; never set it here. */
+export function uploadAnalysis(file: File): Promise<AnalysisResponse> {
+  const body = new FormData();
+  body.append('file', file);
+  return request('/api/analysis', (json) => analysisResponseSchema.parse(json), {
+    method: 'POST',
+    body,
+  });
 }

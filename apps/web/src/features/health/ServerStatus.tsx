@@ -7,11 +7,7 @@ export function ServerStatus() {
 
   let state: ServerStatusState;
   if (health.isSuccess) {
-    state = {
-      kind: 'connected',
-      apiStatus: health.data.status,
-      checkedAt: new Date(health.dataUpdatedAt),
-    };
+    state = { kind: 'connected', checkedAt: new Date(health.dataUpdatedAt) };
   } else if (health.isError) {
     state = { kind: 'error', retrying: health.isFetching };
   } else {
