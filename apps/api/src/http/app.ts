@@ -1,5 +1,6 @@
 import express, { type Express } from 'express';
 
+import { createAnalysisRouter } from './analysis-router.js';
 import { createErrorHandler, notFoundHandler } from './errors.js';
 import { createHealthRouter } from './health-router.js';
 import { createStaticWebRouter } from './static-web.js';
@@ -16,6 +17,7 @@ export function createApp(options: AppOptions = {}): Express {
   app.disable('x-powered-by');
 
   app.use('/api/health', createHealthRouter());
+  app.use('/api/analysis', createAnalysisRouter());
   // Unknown /api routes are always JSON 404s, never the SPA's index.html.
   app.use('/api', notFoundHandler);
 
