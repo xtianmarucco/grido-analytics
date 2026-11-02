@@ -44,7 +44,7 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - [x] T3 `apps/api`: Express app on 127.0.0.1, `/api/health`, API 404, error handler; supertest tests (RED first). (commit 79baf12)
 - [x] T4 `apps/web`: Vite + React + Tailwind v4 + shadcn/ui + @fontsource + TanStack Query health status with connected/error states. (commit 91f32c8)
 - [x] T5 Production mode: Express serves `apps/web/dist` with SPA fallback; `pnpm start` builds and runs one process. (commit 211e7b2)
-- [x] T6 Docs: `/docs` set listed in scope + README with Sprint 0 approved rules.
+- [x] T6 Docs: `/docs` set listed in scope + README with Sprint 0 approved rules. (commit ffe1025)
 
 ## Routing
 
@@ -64,6 +64,7 @@ Out of scope: multer, exceljs, pdfmake, Excel parsing, analysis rules, dashboard
 - T4 (delegated writer): `@grido/web` with Vite 8, React 19, Tailwind v4, shadcn/ui (manual setup, `components.json`; button, card, alert, badge), `@fontsource-variable/inter`, TanStack Query `useHealth` + container/presentational `ServerStatus`, `lib/api.ts` (`fetchHealth`, `ApiError`). UI copy in Spanish (see DECISIONS). Tests: 8/8 (api client: ok, network failure, non-JSON 502, envelope, invalid body; ServerStatus: connected, error + retry button, recovery after retry). typecheck, lint, format:check, build ok. Dev smoke: `pnpm dev` → `GET http://127.0.0.1:5173/api/health` proxied to Express. pnpm 11 auto-added `minimumReleaseAgeExclude` entries for `globals` and `@tanstack/*` (releases newer than the release-age policy).
 - T5 (delegated writer): `createStaticWebRouter` (hashed `/assets` cached 1y immutable, missing asset → JSON 404, SPA fallback for HTML GET/HEAD outside `/api`, `index.html` no-cache); `/api/*` 404 mounted before static. Production mode = `apps/web/dist/index.html` exists (override `WEB_DIST_DIR`), chosen over `NODE_ENV` so `pnpm start` works on Windows without env tooling. RED: 3 failing static tests; GREEN: api 15/15. Smoke via `pnpm start`: health JSON, `/api/nope` 404, `/` and `/foo/bar` contain "Grido Analytics".
 - T6 (delegated writer): `docs/` PROJECT_OVERVIEW, REQUIREMENTS, ARCHITECTURE, BUSINESS_RULES, DATA_DICTIONARY, API_CONTRACT, DECISIONS (D-1..D-17, incl. Spanish UI copy D-7 and web-dist detection D-6), DEVELOPMENT_WORKFLOW, plus README with Sprint 0 rules. Structural check: `pnpm format:check` ok. Passive docs, no RED. Commit hash recorded in the final docs(odd) commit.
+- Final verification (2026-11-02): `pnpm install` exit 0; `pnpm typecheck` exit 0; `pnpm lint` exit 0; `pnpm format:check` exit 0; `pnpm test` exit 0 (shared 7, api 15, web 8); `pnpm build` exit 0; `pnpm start` → `/api/health` 200 JSON ok, `/api/nope` 404, `/` contains "Grido Analytics" (1 match), listening on 127.0.0.1:3001 only; CDN grep over `apps/web/dist` + `index.html`: no matches.
 
 ## Next step
 
