@@ -45,7 +45,7 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 - [x] T1 Vercel build layout + `vercel.json` + Express function entry.
 - [x] T2 Upload limit 4 MB + platform 413 handling.
 - [x] T3 Sprint 5 download/export follow-ups + test cleanup.
-- [ ] T4 `pnpm smoke <baseUrl>`.
+- [x] T4 `pnpm smoke <baseUrl>`.
 - [ ] T5 Docs (DEPLOYMENT, GUIA_DE_USO, README, DECISIONS, ARCHITECTURE).
 
 ## Routing
@@ -66,6 +66,8 @@ Out of scope: offline/PWA, double-click launchers, authentication inside the app
 
 - T3 (delegated writer): RED 3 (delayed revoke with fake timers, selector locked while generating, error not carried to another view). GREEN: `REVOKE_DELAY_MS = 30_000` in `apps/web/src/lib/download.ts`; `useIsGeneratingReport()` (React Query `useIsMutating` on key `report-download`) disables the `ViewSelector`; `ReportDownloads` keyed by view id resets its mutation state per view. Tests stub `URL` with a fresh subclass per test (the real global is never mutated) and rely on the shared `restoreAllMocks`/`unstubAllGlobals` in `afterEach`. Web 96 tests pass. Safari/Firefox download behaviour still to be confirmed by the owner (acceptance 4).
 
+- T4 (delegated writer): `apps/api/scripts/smoke.mjs` (inside `apps/api` so `exceljs` resolves from the API's dependencies; no new packages), root `pnpm smoke [baseUrl]`, optional `VERCEL_PROTECTION_BYPASS` → `x-vercel-protection-bypass`. No unit RED (a network script; exception): verified functionally. `PORT=3002 node apps/api/dist/server.js` + `pnpm smoke http://127.0.0.1:3002` → 5/5 ok, exit 0; against a closed port → 5 FAIL, exit 1; against the materialized Vercel function bundle from `vercel build` → 4/4 API checks ok (PDF 31 KB, xlsx 5 sheets), `GET /` 404 as expected (the CDN serves the page on Vercel).
+
 ## Next step
 
-- Implement T4.
+- Implement T5.
