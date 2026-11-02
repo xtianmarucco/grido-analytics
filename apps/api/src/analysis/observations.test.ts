@@ -97,6 +97,14 @@ describe('buildObservations: O2 many opportunities, low conversion', () => {
     const same = cashier('bruno', { tickets: 100, activadas: 50, aceptadas: 10 });
     expect(rules(observe([ana, same]), ObservationRule.ManyOpportunitiesLowConversion)).toEqual([]);
   });
+
+  it('leaves cashiers without accepted upsells to O5 only', () => {
+    const none = cashier('dario', { tickets: 200, activadas: 150, aceptadas: 0 });
+    const observations = observe([ana, bruno, none]);
+
+    expect(rules(observations, ObservationRule.ManyOpportunitiesLowConversion)).toEqual([]);
+    expect(rules(observations, ObservationRule.NoAccepted)).toEqual(['dario']);
+  });
 });
 
 describe('buildObservations: O3 relevant gap', () => {

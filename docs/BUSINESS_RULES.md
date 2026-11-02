@@ -71,16 +71,18 @@ Deterministic, built in the backend in neutral Spanish. Each one has a fact (num
 cautious interpretation and a recommendation; texts never attribute causes. Percentages use
 `es-AR` with two decimals (`18,87 %`); counts are integers.
 
-| Rule | Fires when                                                                                     | Per     |
-| ---- | ---------------------------------------------------------------------------------------------- | ------- |
-| O1   | Cashier on podium step 1 (every tied cashier)                                                  | Cashier |
-| O2   | Activadas ≥ the view's mean activadas per cashier **and** effectiveness < general (both calc.) | Cashier |
-| O3   | Best − worst calculable effectiveness ≥ 10 points (≥ 2 calculable cashiers)                    | View    |
-| O4   | Tickets < 30 **and** calculable effectiveness ≥ general                                        | Cashier |
-| O5   | Activadas > 0 **and** aceptadas = 0                                                            | Cashier |
-| O6   | At least one podium step `vacant` (`covered-by-tie` does not count)                            | View    |
+| Rule | Fires when                                                                              | Per     |
+| ---- | --------------------------------------------------------------------------------------- | ------- |
+| O1   | Cashier on podium step 1 (every tied cashier)                                           | Cashier |
+| O2   | Aceptadas ≥ 1 **and** activadas ≥ view mean per cashier **and** effectiveness < general | Cashier |
+| O3   | Best − worst calculable effectiveness ≥ 10 points (≥ 2 calculable cashiers)             | View    |
+| O4   | Tickets < 30 **and** calculable effectiveness ≥ general                                 | Cashier |
+| O5   | Activadas > 0 **and** aceptadas = 0                                                     | Cashier |
+| O6   | At least one podium step `vacant` (`covered-by-tie` does not count)                     | View    |
 
-Order: by rule, then ranking order. O2 and O5 can both fire for the same cashier. Thresholds
+Order: by rule, then ranking order. O2 and O5 never fire for the same cashier: cashiers with
+zero aceptadas get only O5 (user decision 2026-11-02). O2 also applies to podium cashiers,
+because a podium place among few eligible cashiers does not imply good effectiveness. Thresholds
 are compared exactly on integer counts.
 
 ## Validation

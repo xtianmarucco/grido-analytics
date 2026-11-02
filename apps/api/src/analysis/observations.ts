@@ -68,7 +68,10 @@ function topResult(podium: Podium, label: string): Observation[] {
   }));
 }
 
-/** O2: activadas ≥ the view's mean per cashier and effectiveness below the general one. */
+/**
+ * O2: at least one aceptada, activadas ≥ the view's mean per cashier and effectiveness below the
+ * general one. Cashiers with zero aceptadas are left to O5 so the same message is not repeated.
+ */
 function manyOpportunitiesLowConversion(
   ranking: readonly RankingEntry[],
   summary: ViewSummary,
@@ -79,7 +82,7 @@ function manyOpportunitiesLowConversion(
   return ranking
     .filter(
       (c) =>
-        c.activadas > 0 &&
+        c.aceptadas > 0 &&
         c.activadas * ranking.length >= summary.activadas &&
         compareEffectiveness(c, summary) > 0,
     )

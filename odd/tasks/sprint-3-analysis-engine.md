@@ -54,6 +54,7 @@ Out of scope: dashboard UI, charts, exports, persistence, historical comparisons
 - [x] T5 `apps/api/src/analysis/observations.ts`: rules O1–O6.
 - [x] T6 Wire analysis into `POST /api/analysis` (additive response) with endpoint tests.
 - [x] T7 Docs update.
+- [x] T8 Product follow-up: O2 requires ≥ 1 aceptada (O5 covers zero-aceptadas); O2 kept for podium cashiers.
 
 ## Routing
 
@@ -78,6 +79,8 @@ Out of scope: dashboard UI, charts, exports, persistence, historical comparisons
 - Parent spot check: real file on a fresh :3002 server → podiums match Sprint 0 (branch-1: filled, filled, vacant; branch-2: filled, filled, vacant; all: 3 filled); observation texts read correctly in Spanish.
 - Native review (2026-11-02): medium (`executable_change`), review_due slice_budget_reached (1803 lines over 7890692..HEAD). Consent granted. Lens review-reliability: approved, acknowledged, authority burned (lineage review-a8db07ab42c9b331). Advisory: R3-tied-top-interpretation-untested (`observations.ts:66`), R3-shared-fixture-o6-text-drift (`packages/shared/src/analysis.test.ts:109`).
 - Product questions raised by the parent: (a) a podium cashier can also receive O2 in the combined view (step 2 and O2 for the same person); (b) O2 and O5 can both fire for the same cashier (agent note).
+
+- T8 (inline, one-condition change + test + docs): user decision 2026-11-02 — (a) keep O2 for podium cashiers; (b) O2 only with ≥ 1 aceptada. RED: `vitest run src/analysis/observations.test.ts` → 1 failed (O2 fired for zero-aceptadas cashier). GREEN: api 132/132; `pnpm typecheck|lint|format:check|test|build` ok. Docs: BUSINESS_RULES O2 row + note, DECISIONS D-33.
 
 ## Next step
 
