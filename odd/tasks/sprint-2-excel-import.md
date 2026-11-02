@@ -82,6 +82,13 @@ Out of scope: consolidation, effectiveness, ranking, podium, observations, dashb
 
 - T7 (inline, one mechanical fix + unit tests): actual impact was worse than reported — `toISOString()` threw `RangeError: Invalid time value`, so the whole upload would fail with 500. RED: `vitest run src/import/cell-values.test.ts` → 1 failed (RangeError). GREEN: api 76/76; `pnpm typecheck|lint|format:check|test|build` ok. E2E: 2-row fictitious file with `turiniciaturno = 1e15` → HTTP 200, 1 included, 1 excluded with INVALID_VALUE warning (row 3).
 
+- T7 assess (base 4aa46d1): medium, review_due false, under_budget (37 lines).
+- Sprint 2 closed by the user on 2026-11-02. Delivery: single push of `feat/sprint-2-excel-import`; PR opened by the user on GitHub.
+
+## Status
+
+Closed.
+
 ## Next step
 
-- Owner review of the branch; push and PR are the owner's decisions. Resync the Engram mirror (still PENDING from the writer's side).
+- Sprint 3 (analysis engine) planning.
