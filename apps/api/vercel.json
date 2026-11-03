@@ -5,8 +5,8 @@
   "regions": ["gru1"],
   "functions": {
     "index.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "public/**"
     }
-  },
-  "rewrites": [{ "source": "/((?!api(?:/|$)|assets/).*)", "destination": "/index.html" }]
+  }
 }

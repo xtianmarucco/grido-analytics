@@ -1,8 +1,8 @@
 # Architecture
 
 Two production topologies, same code and same origin (no CORS): **local** (one Node process on
-`127.0.0.1:3001`, Express serves `/api` and the built React app) and **Vercel** (CDN serves the
-web build, Express runs as one Vercel Function for `/api/*`; see [Deployment](#deployment-vercel)).
+`127.0.0.1:3001`, Express serves `/api` and the built React app) and **Vercel** (Express runs as one
+Vercel Function that serves `/api/*` and the bundled web build; see [Deployment](#deployment-vercel)).
 
 ```text
 Browser ──► 127.0.0.1:3001 ──► Express ──┬─ /api/*  → routers → analysis (pure functions)
@@ -83,13 +83,12 @@ UploadAnalysis (container: selected File + upload mutation)
 ## Deployment (Vercel)
 
 ```text
-Browser ──► <project>.vercel.app ──┬─ static file (apps/api/public = copied web build) → CDN
-                                   ├─ /api/*  → Vercel Function apps/api/src/index.ts → createApp()
-                                   └─ other   → /index.html (vercel.json rewrite)
+Browser ──► <project>.vercel.app ──► Vercel Function apps/api/src/index.ts
+                                        → createApp({ webDistDir: apps/api/public }) (API + web + SPA fallback)
 ```
 
 Vercel project Root Directory `apps/api`, Express preset, region `gru1`. `pnpm run vercel-build`
-builds `@grido/shared` and `@grido/web` and copies the web build into `apps/api/public`. The
+builds `@grido/shared` and `@grido/web` and copies the web build into `apps/api/public`, which `includeFiles` bundles into the function. The
 function is stateless like the local server: each request carries the Excel; nothing is stored.
 Settings, limits and the first-deploy checklist: [DEPLOYMENT.md](DEPLOYMENT.md) (D-47, D-48).
 

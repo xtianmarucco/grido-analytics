@@ -4,7 +4,7 @@ Web app that turns the weekly Grido shift-close Excel into an upselling (SB) eff
 per cashier, with podium and PDF/Excel exports. No database, no login. Runs locally
 (`pnpm start`) or on Vercel ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
-> Sprint 7 status: deployable on Vercel (web on the CDN, API as one function); uploads up to 4 MB.
+> Sprint 7 status: deployable on Vercel (one function serves API and web); uploads up to 4 MB.
 > User guide in Spanish: [docs/GUIA_DE_USO.md](docs/GUIA_DE_USO.md).
 
 ## Quick start
