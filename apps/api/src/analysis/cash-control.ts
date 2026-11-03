@@ -257,6 +257,9 @@ function lowCashSignals(shifts: readonly NormalizedShift[]): LowCashSignal[] {
           cashierKey,
           cashierName,
           shiftCount: own.length,
+          shifts: own
+            .map((s) => ({ turno: s.turno, startedAt: s.startedAt }))
+            .sort((a, b) => a.startedAt.localeCompare(b.startedAt) || a.turno - b.turno),
           cashierShare,
           peersShare,
           gapPoints: peersShare - cashierShare,

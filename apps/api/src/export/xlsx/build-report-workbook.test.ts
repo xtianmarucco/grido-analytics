@@ -211,10 +211,18 @@ describe('renderReportWorkbook', () => {
     expect(ws.getCell(alerts + 2, 8).value).toBeCloseTo(0.025, 12);
 
     const signals = findRow(ws, 'Efectivo bajo frente al resto del horario');
+    expect(rowValues(ws, signals + 1).slice(0, 6)).toEqual([
+      'Sucursal',
+      'Horario',
+      'Cajero',
+      'Cantidad de turnos',
+      'Turnos',
+      '% efectivo del cajero',
+    ]);
     const signal = rowValues(ws, signals + 2);
-    expect(signal.slice(0, 4)).toEqual(['Almirante', 'Día', 'Bruno', 1]);
-    expect(ws.getCell(signals + 2, 5).value).toBeCloseTo(0.2, 12);
-    expect(ws.getCell(signals + 2, 6).value).toBeCloseTo(0.4, 12);
+    expect(signal.slice(0, 5)).toEqual(['Almirante', 'Día', 'Bruno', 1, 'lun 19/10 08:00']);
+    expect(ws.getCell(signals + 2, 6).value).toBeCloseTo(0.2, 12);
+    expect(ws.getCell(signals + 2, 7).value).toBeCloseTo(0.4, 12);
 
     findRow(
       ws,

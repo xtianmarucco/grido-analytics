@@ -1,10 +1,11 @@
-import type {
-  AnalysisView,
-  CashierCashIndicators,
-  Effectiveness,
-  PodiumStep,
-  RankingEntry,
-  ShiftSlot,
+import {
+  type AnalysisView,
+  type CashierCashIndicators,
+  type Effectiveness,
+  formatShiftStarts,
+  type PodiumStep,
+  type RankingEntry,
+  type ShiftSlot,
 } from '@grido/shared';
 import ExcelJS from 'exceljs';
 
@@ -349,6 +350,7 @@ function cashControlSheet(workbook: ExcelJS.Workbook, view: AnalysisView, meta: 
       'Sucursal',
       'Horario',
       'Cajero',
+      'Cantidad de turnos',
       'Turnos',
       '% efectivo del cajero',
       '% efectivo del resto',
@@ -360,6 +362,7 @@ function cashControlSheet(workbook: ExcelJS.Workbook, view: AnalysisView, meta: 
       SLOT_LABELS[signal.slot],
       signal.cashierName,
       signal.shiftCount,
+      formatShiftStarts(signal.shifts),
       percentCell(signal.cashierShare),
       percentCell(signal.peersShare),
       decimal(signal.gapPoints),

@@ -253,6 +253,7 @@ Every view adds `cashControl` (additive; schema `cashControlSchema`). Rules in
       "cashierKey": "bruno",
       "cashierName": "Bruno",
       "shiftCount": 1,
+      "shifts": [{ "turno": 7102, "startedAt": "2026-10-19T13:38:00" }],
       "cashierShare": 25,
       "peersShare": 37.5,
       "gapPoints": 12.5,
@@ -264,6 +265,10 @@ Every view adds `cashControl` (additive; schema `cashControlSchema`). Rules in
 
 - `cashiers` by `cashierKey` (merged across branches in `all`); `slots` `dia` first;
   `shiftAlerts` by `startedAt`, then `turno`; `lowCashSignals` by branch, slot, then gap.
+- `lowCashSignals[].shifts`: the cashier's shifts in that branch + slot that make up the signal
+  (`turno`, wall-clock `startedAt`), by `startedAt`, then `turno`; always `shiftCount` items
+  (schema-enforced). Clients show them with `formatShiftStarts` from `@grido/shared`
+  (`lun 19/10 13:38 · mié 21/10 10:57`). Additive field.
 - `percentOfCash` is `null` when the shift had no cash. Signals never mix branches; `all` lists
   the union of the branch signals.
 - The new money columns are required: a file without them is 422 `MISSING_COLUMNS`.
@@ -290,12 +295,14 @@ Every view adds `cashControl` (additive; schema `cashControlSchema`). Rules in
 - PDF (A4 portrait): title "Informe semanal de sobreventas", view, period, generation date
   (`dd/mm/yyyy HH:mm`, server local time); Resumen; Podio (vacant / covered-by-tie texts);
   Observaciones (Dato / Interpretación / Recomendación); Ranking with eligibility reasons;
-  Control de caja (limitation note, alerted shifts, low-cash signals, per-cashier table; the
+  Control de caja (limitation note, alerted shifts, low-cash signals with a "Turnos: …" line,
+  per-cashier table; the
   Resumen adds % efectivo, % Club Grido, Diferencia de caja, Ticket promedio, Tickets por hora,
   Turnos a revisar); footer with the podium requirements and "Página X de Y".
 - Excel sheets: `Resumen`, `Ranking` (bold frozen header, autofilter), `Podio`,
   `Observaciones`, `Control de caja` (per-cashier indicators, then the blocks "Diferencias de
-  caja para revisar" and "Efectivo bajo frente al resto del horario" — "Sin señales esta semana"
+  caja para revisar" and "Efectivo bajo frente al resto del horario", with "Cantidad de turnos" and a "Turnos" column
+  listing the shifts — "Sin señales esta semana"
   when empty — and the limitation note). `Resumen` adds Ventas, % efectivo, % Club Grido,
   Diferencia de caja, Faltante, Sobrante, Turnos a revisar, Ticket promedio, Tickets por hora.
   Money cells are numbers with format `"$" #,##0.00`; percentages are fractions with `0.00%`;

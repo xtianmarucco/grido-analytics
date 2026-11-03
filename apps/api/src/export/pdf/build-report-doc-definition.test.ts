@@ -113,6 +113,7 @@ describe('buildReportDocDefinition', () => {
       'La diferencia de caja del turno fue -$\u00a0100,00 (2,50 % del efectivo). Conviene revisar el arqueo de ese turno.',
     );
     expect(all).toContain('Señal para revisar · Día · Bruno');
+    expect(all).toContain('Turnos: lun 19/10 08:00');
     const table = findTable(nodes, 'Cajero');
     expect(table?.table.headerRows).toBe(1);
     const bruno = table?.table.body.find((row) => texts(row)[0] === 'Bruno');

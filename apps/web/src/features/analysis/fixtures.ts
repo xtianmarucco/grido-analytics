@@ -195,6 +195,7 @@ export function cashControl(overrides: Partial<CashControl> = {}): CashControl {
         cashierKey: 'ana',
         cashierName: 'Ana',
         shiftCount: 1,
+        shifts: [{ turno: 1001, startedAt: '2026-10-19T13:38:00' }],
         cashierShare: 30,
         peersShare: 42.5,
         gapPoints: 12.5,

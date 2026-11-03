@@ -359,22 +359,34 @@ export type ShiftAlert = z.infer<typeof shiftAlertSchema>;
  * "Señal para revisar": in one branch + slot, the cashier's cash share is ≥ 10 points below the
  * share of the other cashiers of that branch + slot. Never computed across branches.
  */
-export const lowCashSignalSchema = z.object({
-  branchCode: z.number().int().positive(),
-  branchName: z.string().min(1),
-  slot: z.enum(ShiftSlot),
-  cashierKey: z.string().min(1),
-  cashierName: z.string().min(1),
-  shiftCount: count,
-  /** The cashier's Σturefectivo / Σventa × 100 in the branch + slot. */
-  cashierShare: z.number(),
-  /** The other cashiers' Σturefectivo / Σventa × 100 in the branch + slot. */
-  peersShare: z.number(),
-  /** `peersShare − cashierShare`. */
-  gapPoints: z.number(),
-  /** Spanish, neutral fact + cautious recommendation. */
-  message: z.string().min(1),
-});
+export const lowCashSignalSchema = z
+  .object({
+    branchCode: z.number().int().positive(),
+    branchName: z.string().min(1),
+    slot: z.enum(ShiftSlot),
+    cashierKey: z.string().min(1),
+    cashierName: z.string().min(1),
+    shiftCount: count,
+    /**
+     * The cashier's shifts in the branch + slot that make up the signal, by `startedAt`, then
+     * `turno`. Always `shiftCount` items.
+     */
+    shifts: z
+      .array(z.object({ turno: z.number().int().positive(), startedAt: wallClockDateTimeSchema }))
+      .min(1),
+    /** The cashier's Σturefectivo / Σventa × 100 in the branch + slot. */
+    cashierShare: z.number(),
+    /** The other cashiers' Σturefectivo / Σventa × 100 in the branch + slot. */
+    peersShare: z.number(),
+    /** `peersShare − cashierShare`. */
+    gapPoints: z.number(),
+    /** Spanish, neutral fact + cautious recommendation. */
+    message: z.string().min(1),
+  })
+  .refine((signal) => signal.shiftCount === signal.shifts.length, {
+    message: 'shiftCount must equal shifts.length',
+    path: ['shifts'],
+  });
 
 export type LowCashSignal = z.infer<typeof lowCashSignalSchema>;
 

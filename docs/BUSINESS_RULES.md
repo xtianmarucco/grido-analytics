@@ -107,6 +107,9 @@ never average percentages; round only for display. Money is read rounded to cent
   ≥ 10 points below the peers' (the other cashiers' totals in that branch + slot), inclusive,
   no minimum shifts. Compared exactly by cross-multiplication on cents
   (`10 × (Ep·Vc − Ec·Vp) ≥ Vp·Vc`). No peers, or Σ`venta` = 0 on either side → no signal.
+  Each signal lists the shifts it summarizes (by start, then `turno`), shown as weekday + date +
+  start time from the wall-clock `turiniciaturno` (`Turnos: lun 19/10 13:38 · mié 21/10 10:57`),
+  the same text on web, PDF and Excel.
 - **Combined view**: cashier indicators merge branches; signals are always computed within
   branch + slot (never across branches) and listed as the union, each with its branch.
 - Texts are neutral facts plus a cautious recommendation, never causal or accusatory. The

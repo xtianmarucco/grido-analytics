@@ -1,9 +1,10 @@
-import type {
-  CashControl as CashControlData,
-  CashierCashIndicators,
-  LowCashSignal,
-  ShiftAlert,
-  ShiftSlot,
+import {
+  type CashControl as CashControlData,
+  type CashierCashIndicators,
+  formatShiftStarts,
+  type LowCashSignal,
+  type ShiftAlert,
+  type ShiftSlot,
 } from '@grido/shared';
 import { Info, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -158,6 +159,9 @@ function SignalItem({ signal, combined }: { signal: LowCashSignal; combined: boo
       <p className="text-sm tabular-nums">
         {`Efectivo ${formatPercent(signal.cashierShare)} · resto ${formatPercent(signal.peersShare)} · `}
         <span className="font-semibold">{`${formatDecimal(signal.gapPoints)} puntos menos`}</span>
+      </p>
+      <p className="text-sm text-muted-foreground tabular-nums break-words">
+        {`Turnos: ${formatShiftStarts(signal.shifts)}`}
       </p>
       <p className="text-sm text-muted-foreground">{signal.message}</p>
     </SignalCard>

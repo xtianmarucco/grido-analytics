@@ -164,6 +164,31 @@ describe('buildCashControl: low-cash signals (10 points below slot peers)', () =
     );
   });
 
+  it('lists the shifts behind each signal by start, then turno', () => {
+    const day = (startedAt: string) => ({
+      startedAt,
+      closedAt: startedAt.replace(/T.*/, 'T14:00:00'),
+    });
+    const { lowCashSignals } = buildCashControl([
+      shift({ turno: 30, cashierKey: 'ana', ...day('2026-10-23T10:55:00'), turEfectivo: 1000 }),
+      shift({ turno: 20, cashierKey: 'ana', ...day('2026-10-19T10:59:00'), turEfectivo: 1000 }),
+      shift({ turno: 10, cashierKey: 'ana', ...day('2026-10-19T10:59:00'), turEfectivo: 1000 }),
+      shift({ turno: 40, cashierKey: 'ana', ...day('2026-10-21T10:57:00'), turEfectivo: 1000 }),
+      shift({ turno: 50, cashierKey: 'bruno', ...day('2026-10-20T09:00:00'), turEfectivo: 5000 }),
+    ]);
+
+    expect(lowCashSignals).toHaveLength(1);
+    const [signal] = lowCashSignals;
+    expect(signal?.shifts).toEqual([
+      { turno: 10, startedAt: '2026-10-19T10:59:00' },
+      { turno: 20, startedAt: '2026-10-19T10:59:00' },
+      { turno: 40, startedAt: '2026-10-21T10:57:00' },
+      { turno: 30, startedAt: '2026-10-23T10:55:00' },
+    ]);
+    expect(signal?.shiftCount).toBe(signal?.shifts.length);
+    expect(cashControlSchema.safeParse(buildCashControl([])).success).toBe(true);
+  });
+
   it('does not flag a gap of 9,99 points', () => {
     const { lowCashSignals } = buildCashControl([
       shift({ cashierKey: 'ana', venta: 10000, turEfectivo: 3001 }),

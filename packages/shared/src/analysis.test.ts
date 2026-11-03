@@ -202,6 +202,7 @@ const view = {
         cashierKey: 'ana',
         cashierName: 'Ana',
         shiftCount: 1,
+        shifts: [{ turno: 1001, startedAt: '2026-10-19T13:38:00' }],
         cashierShare: 30,
         peersShare: 42.5,
         gapPoints: 12.5,
@@ -362,6 +363,20 @@ describe('cashControlSchema', () => {
     expect(cashControlSchema.safeParse({ ...view.cashControl, shiftAlerts: [alert] }).success).toBe(
       false,
     );
+  });
+
+  it('requires the shifts of a low-cash signal to match its shift count', () => {
+    const [signal] = view.cashControl.lowCashSignals;
+    const twoShifts = [
+      { turno: 1001, startedAt: '2026-10-19T13:38:00' },
+      { turno: 1002, startedAt: '2026-10-21T10:57:00' },
+    ];
+    const accepts = (s: unknown) =>
+      cashControlSchema.safeParse({ ...view.cashControl, lowCashSignals: [s] }).success;
+    expect(accepts({ ...signal, shiftCount: 2, shifts: twoShifts })).toBe(true);
+    expect(accepts({ ...signal, shiftCount: 1, shifts: twoShifts })).toBe(false);
+    expect(accepts({ ...signal, shiftCount: 0, shifts: [] })).toBe(false);
+    expect(accepts({ ...signal, shifts: [{ turno: 1001, startedAt: '19/10 13:38' }] })).toBe(false);
   });
 
   it('is required on every view', () => {

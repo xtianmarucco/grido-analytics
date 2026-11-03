@@ -1,6 +1,7 @@
 import {
   type AnalysisView,
   type CashierCashIndicators,
+  formatShiftStarts,
   type LowCashSignal,
   type Observation,
   type PodiumStep,
@@ -295,12 +296,18 @@ function ranking(view: AnalysisView, meta: ReportMeta): Content[] {
   ];
 }
 
-function signalItem(heading: string, detail: string, message: string): Content {
+function signalItem(heading: string, detail: string, message: string, note?: string): Content {
+  const muted = (text: string): Content => ({
+    text,
+    color: COLOR.mutedForeground,
+    margin: [0, 1, 0, 0],
+  });
   return {
     stack: [
       { text: `${SIGNAL_LABEL} · ${heading}`, bold: true, color: COLOR.warning },
       { text: detail, margin: [0, 1, 0, 0] },
-      { text: message, color: COLOR.mutedForeground, margin: [0, 1, 0, 0] },
+      ...(note === undefined ? [] : [muted(note)]),
+      muted(message),
     ],
     margin: [0, 0, 0, 6],
     unbreakable: true,
@@ -326,6 +333,7 @@ function lowCashItem(signal: LowCashSignal, combined: boolean): Content {
     `${branch}${SLOT_LABELS[signal.slot]} · ${signal.cashierName}`,
     `Efectivo ${formatPercent(signal.cashierShare)} · resto ${formatPercent(signal.peersShare)} · ${formatDecimal(signal.gapPoints)} puntos menos`,
     signal.message,
+    `Turnos: ${formatShiftStarts(signal.shifts)}`,
   );
 }
 

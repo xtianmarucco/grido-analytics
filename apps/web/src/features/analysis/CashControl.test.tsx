@@ -40,6 +40,32 @@ describe('CashControl', () => {
     expect(item).toHaveTextContent('Ana cobró en efectivo el 30,00 % de sus ventas');
   });
 
+  it('lists the shifts behind each low-cash signal between the numbers and the message', () => {
+    const base = cashControl();
+    const [signal] = base.lowCashSignals;
+    if (!signal) throw new Error('fixture needs a signal');
+    const shifts = [
+      { turno: 1001, startedAt: '2026-10-19T10:59:00' },
+      { turno: 1002, startedAt: '2026-10-21T10:57:00' },
+      { turno: 1003, startedAt: '2026-10-23T10:55:00' },
+    ];
+
+    render(
+      <CashControl
+        cashControl={{ ...base, lowCashSignals: [{ ...signal, shiftCount: 3, shifts }] }}
+      />,
+    );
+
+    const list = screen.getByRole('list', { name: 'Efectivo bajo frente al resto del horario' });
+    const [item] = within(list).getAllByRole('listitem');
+    const line = within(item as HTMLElement).getByText(
+      'Turnos: lun 19/10 10:59 · mié 21/10 10:57 · vie 23/10 10:55',
+    );
+    const paragraphs = [...(item as HTMLElement).querySelectorAll('p')];
+    expect(paragraphs.indexOf(line as HTMLParagraphElement)).toBe(1);
+    expect(line).toHaveClass('text-muted-foreground');
+  });
+
   it('shows the branch of each signal in the combined view', () => {
     render(<CashControl cashControl={cashControl()} combined />);
 

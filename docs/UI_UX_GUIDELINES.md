@@ -387,7 +387,8 @@ Section "Control de caja" right after the ranking:
   indican qué revisar, no prueban irregularidades."
 - Two lists side by side at `lg` (stacked below): "Diferencias de caja para revisar" (date
   `dd/mm` · slot · cashier, signed difference, % of cash, API message) and "Efectivo bajo frente
-  al resto del horario" (slot · cashier, cashier vs rest %, points, API message). In the
+  al resto del horario" (slot · cashier, cashier vs rest %, points, a muted "Turnos: lun 19/10
+  13:38 · …" line, API message). In the
   combined view each item starts with its branch. Empty list → "Sin señales esta semana".
 - Each item: card with an amber left border (`--warning`) and a `warning` badge
   "Señal para revisar" with `TriangleAlert`. Never the destructive red; texts are shown as-is.
